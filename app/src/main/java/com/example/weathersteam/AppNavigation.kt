@@ -7,21 +7,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.weathersteam.ui.theme.LoginScreen
 import com.example.weathersteam.ui.theme.SignUpScreen
+import com.example.weathersteam.ui.theme.SteamLoginScreen
 
-/**
- * Defines the navigation routes for the app.
- */
 object AppRoutes {
     const val LOGIN = "login"
+    const val STEAM_LOGIN = "steam_login"
     const val SIGN_UP = "signup"
 }
 
-/**
- * This composable sets up the navigation graph for your app.
- * You would call this composable from your main activity.
- *
- * (Requires androidx.navigation:navigation-compose dependency)
- */
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -40,8 +33,19 @@ fun AppNavigation() {
                     navController.navigate(AppRoutes.SIGN_UP)
                 },
                 onSteamLoginClick = {
-                    // TODO: Add your Steam login logic here
-                    println("Steam login attempt")
+                    navController.navigate((AppRoutes.STEAM_LOGIN))
+                }
+            )
+        }
+
+        composable(AppRoutes.STEAM_LOGIN) {
+            SteamLoginScreen(
+                onSteamLoginClick = { steamId ->
+                    // TODO: Add your login authentication logic here
+                    println("Steam login attempt with $steamId")
+                },
+                onRegisterClick = {
+                    navController.navigate(AppRoutes.SIGN_UP)
                 }
             )
         }

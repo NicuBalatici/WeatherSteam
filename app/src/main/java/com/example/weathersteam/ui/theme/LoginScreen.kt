@@ -86,7 +86,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            IconButton (
+            IconButton(
                 onClick = onSteamLoginClick,
                 modifier = Modifier
                     .fillMaxWidth()
