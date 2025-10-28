@@ -1,6 +1,7 @@
 package com.example.weathersteam
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -37,6 +38,10 @@ fun AppNavigation() {
                 onRegisterClick = {
                     // This handles the navigation to the sign-up screen
                     navController.navigate(AppRoutes.SIGN_UP)
+                },
+                onSteamLoginClick = {
+                    // TODO: Add your Steam login logic here
+                    println("Steam login attempt")
                 }
             )
         }
@@ -56,9 +61,15 @@ fun AppNavigation() {
                             inclusive = true
                         }
                     }
-                }
+                },
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AppNavigationPreview() {
+    AppNavigation()
 }
 
