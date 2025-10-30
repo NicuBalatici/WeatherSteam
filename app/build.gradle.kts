@@ -1,10 +1,19 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
+val steamApiKey: String =
+    gradleLocalProperties(
+        rootDir,
+        providers
+    ).getProperty("STEAM_API_KEY") ?: ""
+
 android {
+
     namespace = "com.example.weathersteam"
     compileSdk {
         version = release(36)
@@ -18,6 +27,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue("string", "STEAM_API_KEY", "\"" + steamApiKey + "\"")
     }
 
     buildTypes {
@@ -39,6 +50,10 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.core)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

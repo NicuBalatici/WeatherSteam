@@ -1,13 +1,17 @@
 package com.example.weathersteam
 
+import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.weathersteam.handlers.steamLoginHandler
 import com.example.weathersteam.ui.theme.LoginScreen
 import com.example.weathersteam.ui.theme.SignUpScreen
 import com.example.weathersteam.ui.theme.SteamLoginScreen
+import kotlinx.coroutines.launch
 
 object AppRoutes {
     const val LOGIN = "login"
@@ -16,8 +20,9 @@ object AppRoutes {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(context: Context?) {
     val navController = rememberNavController()
+    val coroutineScope = rememberCoroutineScope()
 
     NavHost(navController = navController, startDestination = AppRoutes.LOGIN) {
 
@@ -40,9 +45,11 @@ fun AppNavigation() {
 
         composable(AppRoutes.STEAM_LOGIN) {
             SteamLoginScreen(
-                onSteamLoginClick = { steamId ->
-                    // TODO: Add your login authentication logic here
-                    println("Steam login attempt with $steamId")
+                onSteamLoginClick = { formContent ->
+                    coroutineScope.launch {
+                        steamLoginHandler(context, formContent)
+                    }
+                    println("Steam login attempt with $formContent")
                 },
                 onRegisterClick = {
                     navController.navigate(AppRoutes.SIGN_UP)
@@ -74,6 +81,6 @@ fun AppNavigation() {
 @Preview(showBackground = true)
 @Composable
 fun AppNavigationPreview() {
-    AppNavigation()
+    AppNavigation(null)
 }
 
