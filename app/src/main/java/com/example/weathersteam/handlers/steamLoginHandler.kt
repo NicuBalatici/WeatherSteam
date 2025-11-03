@@ -49,4 +49,6 @@ suspend fun steamLoginHandler(context: Context?, formContent: String) {
      * TODO: implement API calls to store user in database
      * it will return a JTW token that will be stored on the device
      */
+
+    client.close()
 }
