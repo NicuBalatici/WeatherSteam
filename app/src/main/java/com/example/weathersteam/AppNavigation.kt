@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.weathersteam.handlers.steamLoginHandler
 import com.example.weathersteam.ui.theme.LoginScreen
+import com.example.weathersteam.ui.theme.MainScreen
 import com.example.weathersteam.ui.theme.SignUpScreen
 import com.example.weathersteam.ui.theme.SteamLoginScreen
 import kotlinx.coroutines.launch
@@ -17,6 +18,7 @@ object AppRoutes {
     const val LOGIN = "login"
     const val STEAM_LOGIN = "steam_login"
     const val SIGN_UP = "signup"
+    const val MAIN = "main"
 }
 
 @Composable
@@ -30,8 +32,18 @@ fun AppNavigation(context: Context?) {
         composable(AppRoutes.LOGIN) {
             LoginScreen(
                 onLoginClick = { email, password ->
-                    // TODO: Add your login authentication logic here
+                    // --- This code replaces the TODO ---
+                    // In a real app, you would validate email and password first
                     println("Login attempt with $email")
+
+                    navController.navigate(AppRoutes.MAIN) {
+                        // Pop up to the login screen and remove it from the back stack
+                        // This prevents the user from pressing "back" and returning to login
+                        popUpTo(AppRoutes.LOGIN) {
+                            inclusive = true
+                        }
+                    }
+                    // --- End of completed TODO ---
                 },
                 onRegisterClick = {
                     // This handles the navigation to the sign-up screen
@@ -73,6 +85,22 @@ fun AppNavigation(context: Context?) {
                         }
                     }
                 },
+            )
+        }
+
+        composable(AppRoutes.MAIN) {
+            MainScreen(
+//                onLogoutClick = {
+//                    navController.navigate(AppRoutes.LOGIN) {
+//                        // Pop up to the main screen and remove it from the back stack
+//                        // This ensures the user cannot press "back" to return
+//                        // to the logged-in state.
+//                        popUpTo(AppRoutes.MAIN) {
+//                            inclusive = true
+//                        }
+//                    }
+//                }
+//                DO NOT UNCOMMENT WHAT IS ABOVE
             )
         }
     }
