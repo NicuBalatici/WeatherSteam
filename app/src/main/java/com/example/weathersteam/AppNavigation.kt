@@ -46,7 +46,6 @@ fun AppNavigation(context: Context?) {
                     // --- End of completed TODO ---
                 },
                 onRegisterClick = {
-                    // This handles the navigation to the sign-up screen
                     navController.navigate(AppRoutes.SIGN_UP)
                 },
                 onSteamLoginClick = {
@@ -90,17 +89,16 @@ fun AppNavigation(context: Context?) {
 
         composable(AppRoutes.MAIN) {
             MainScreen(
-//                onLogoutClick = {
-//                    navController.navigate(AppRoutes.LOGIN) {
-//                        // Pop up to the main screen and remove it from the back stack
-//                        // This ensures the user cannot press "back" to return
-//                        // to the logged-in state.
-//                        popUpTo(AppRoutes.MAIN) {
-//                            inclusive = true
-//                        }
-//                    }
-//                }
-//                DO NOT UNCOMMENT WHAT IS ABOVE
+                onLogoutClick = {
+                    navController.navigate(AppRoutes.LOGIN) {
+                        // Pop up to the main screen and remove it from the back stack
+                        // This ensures the user cannot press "back" to return
+                        // to the logged-in state.
+                        popUpTo(AppRoutes.MAIN) {
+                            inclusive = true
+                        }
+                    }
+                }
             )
         }
     }
