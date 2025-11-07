@@ -32,21 +32,15 @@ fun AppNavigation(context: Context?) {
         composable(AppRoutes.LOGIN) {
             LoginScreen(
                 onLoginClick = { email, password ->
-                    // --- This code replaces the TODO ---
-                    // In a real app, you would validate email and password first
                     println("Login attempt with $email")
 
                     navController.navigate(AppRoutes.MAIN) {
-                        // Pop up to the login screen and remove it from the back stack
-                        // This prevents the user from pressing "back" and returning to login
                         popUpTo(AppRoutes.LOGIN) {
                             inclusive = true
                         }
                     }
-                    // --- End of completed TODO ---
                 },
                 onRegisterClick = {
-                    // This handles the navigation to the sign-up screen
                     navController.navigate(AppRoutes.SIGN_UP)
                 },
                 onSteamLoginClick = {
@@ -76,10 +70,8 @@ fun AppNavigation(context: Context?) {
                     // TODO: Add your registration logic here
                     println("Sign up attempt with $email")
                 },
-                // This is the code that replaces the TODO
                 onLoginClick = {
                     navController.navigate(AppRoutes.LOGIN) {
-                        // Pop up to the login screen to avoid building a large back stack
                         popUpTo(AppRoutes.LOGIN) {
                             inclusive = true
                         }
@@ -90,17 +82,13 @@ fun AppNavigation(context: Context?) {
 
         composable(AppRoutes.MAIN) {
             MainScreen(
-//                onLogoutClick = {
-//                    navController.navigate(AppRoutes.LOGIN) {
-//                        // Pop up to the main screen and remove it from the back stack
-//                        // This ensures the user cannot press "back" to return
-//                        // to the logged-in state.
-//                        popUpTo(AppRoutes.MAIN) {
-//                            inclusive = true
-//                        }
-//                    }
-//                }
-//                DO NOT UNCOMMENT WHAT IS ABOVE
+                onLogoutClick = {
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(AppRoutes.MAIN) {
+                            inclusive = true
+                        }
+                    }
+                }
             )
         }
     }

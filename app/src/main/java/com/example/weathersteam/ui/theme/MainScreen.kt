@@ -1,5 +1,9 @@
 package com.example.weathersteam.ui.theme
 
+// --- NEW --- Import necessary ActivityResult and Permission tools
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,14 +25,21 @@ import com.example.weathersteam.viewmodels.MainViewModel
 
 @Composable
 fun MainScreen(
-    // Get the ViewModel instance from the Compose lifecycle
     mainViewModel: MainViewModel = viewModel(),
-    // This comes from your AppNavigation
     onLogoutClick: () -> Unit = {}
 ) {
-    // Observe the uiState from the ViewModel
-    // 'by' keyword makes it automatically unwrap the value
     val uiState by mainViewModel.uiState.collectAsState()
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                mainViewModel.fetchData()
+            } else {
+                // User denied permission, you could show a message here
+            }
+        }
+    )
 
     Box(
         modifier = Modifier
@@ -36,14 +47,19 @@ fun MainScreen(
             .padding(32.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Use a 'when' block to show UI for each state
         when {
-            // 1. Loading State
             uiState.isLoading -> {
                 CircularProgressIndicator()
             }
 
-            // 2. Error State
+            uiState.needsPermission -> {
+                PermissionView(
+                    onGrantPermissionClick = {
+                        permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    }
+                )
+            }
+
             uiState.error != null -> {
                 Text(
                     text = "Error: ${uiState.error}",
@@ -52,61 +68,85 @@ fun MainScreen(
                 )
             }
 
-            // 3. Success State
+            // Success State (no changes needed here)
             else -> {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "From where you are (${uiState.location ?: "Unknown"}),\nyou have the temperature ${uiState.temperature ?: "N/A"}.",
-                        fontSize = 18.sp,
-                        textAlign = TextAlign.Center,
-                        color = Color(0xFF333333)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "The recommended game is:",
-                        fontSize = 18.sp,
-                        textAlign = TextAlign.Center,
-                        color = Color(0xFF555555)
-                    )
-
-                    Text(
-                        // Use ?: as a fallback in case data is null
-                        text = uiState.recommendedGame ?: "No recommendation",
-                        fontSize = 22.sp,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    Button(
-                        onClick = onLogoutClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Text("Logout")
-                    }
-                }
+                SuccessView(
+                    location = uiState.location,
+                    temperature = uiState.temperature,
+                    game = uiState.recommendedGame,
+                    onLogoutClick = onLogoutClick
+                )
             }
         }
     }
 }
 
+@Composable
+fun SuccessView(
+    location: String?,
+    temperature: String?,
+    game: String?,
+    onLogoutClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "From where you are (${location ?: "Unknown"}),\nyou have the temperature ${temperature ?: "N/A"}.",
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center,
+            color = Color(0xFF333333)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "The recommended game is:",
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center,
+            color = Color(0xFF555555)
+        )
+        Text(
+            text = game ?: "No recommendation",
+            fontSize = 22.sp,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            onClick = onLogoutClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Text("Logout")
+        }
+    }
+}
 
-// You can create a simple preview for the success state
+@Composable
+fun PermissionView(
+    onGrantPermissionClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "We need your location to get the weather.",
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onGrantPermissionClick) {
+            Text("Grant Permission")
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    // We can't use a real ViewModel in a Preview,
-    // so this preview won't show the dynamic data.
-    // For a more advanced preview, you would pass a fake ViewModel.
     MainScreen()
 }
