@@ -30,12 +30,10 @@ fun MainScreen(
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
 
-    // --- NEW --- Create a launcher for the permission request
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (isGranted) {
-                // Permission was granted, retry fetching data
                 mainViewModel.fetchData()
             } else {
                 // User denied permission, you could show a message here
@@ -54,7 +52,6 @@ fun MainScreen(
                 CircularProgressIndicator()
             }
 
-            // --- NEW --- Show a permission request button
             uiState.needsPermission -> {
                 PermissionView(
                     onGrantPermissionClick = {
@@ -84,7 +81,6 @@ fun MainScreen(
     }
 }
 
-// --- NEW --- A composable for the success state (to clean up the `when` block)
 @Composable
 fun SuccessView(
     location: String?,
@@ -129,7 +125,6 @@ fun SuccessView(
     }
 }
 
-// --- NEW --- A composable for the permission request state
 @Composable
 fun PermissionView(
     onGrantPermissionClick: () -> Unit
