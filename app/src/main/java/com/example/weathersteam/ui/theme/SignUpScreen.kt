@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -19,7 +20,7 @@ fun SignUpScreen(
     onSignUpClick: (String, String, String) -> Unit = { _, _, _ -> },
     onLoginClick: () -> Unit = {}
 ) {
-    var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
@@ -46,11 +47,11 @@ fun SignUpScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Username") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -78,7 +79,7 @@ fun SignUpScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { onSignUpClick(email, password, confirmPassword) },
+                onClick = { onSignUpClick(username, password, confirmPassword) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -95,3 +96,11 @@ fun SignUpScreen(
         }
     }
 }
+
+@Preview
+@Composable
+fun SignUpScreenPreview() {
+    SignUpScreen()
+}
+
+

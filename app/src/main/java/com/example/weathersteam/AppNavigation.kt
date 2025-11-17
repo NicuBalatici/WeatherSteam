@@ -7,6 +7,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.weathersteam.handlers.registerHandler
 import com.example.weathersteam.handlers.steamLoginHandler
 import com.example.weathersteam.ui.theme.LoginScreen
 import com.example.weathersteam.ui.theme.MainScreen
@@ -54,7 +55,6 @@ fun AppNavigation(context: Context?) {
                     coroutineScope.launch {
                         steamLoginHandler(context, formContent)
                     }
-                    println("Steam login attempt with $formContent")
                 },
                 onRegisterClick = {
                     navController.navigate(AppRoutes.SIGN_UP)
@@ -64,9 +64,10 @@ fun AppNavigation(context: Context?) {
 
         composable(AppRoutes.SIGN_UP) {
             SignUpScreen(
-                onSignUpClick = { email, password, confirmPassword ->
-                    // TODO: Add your registration logic here
-                    println("Sign up attempt with $email")
+                onSignUpClick = { username, password, confirmPassword ->
+                    coroutineScope.launch {
+                        registerHandler(context, username, password, confirmPassword)
+                    }
                 },
                 onLoginClick = {
                     navController.navigate(AppRoutes.LOGIN) {
