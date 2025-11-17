@@ -26,7 +26,7 @@ fun SignUpScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF6F6F6)), // Matching background color
+            .background(Color(0xFFF6F6F6)),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -37,7 +37,7 @@ fun SignUpScreen(
                 .padding(32.dp)
         ) {
             Text(
-                text = "Create Account", // Changed title for sign up
+                text = "Create Account",
                 fontSize = 26.sp,
                 textAlign = TextAlign.Center,
                 color = Color(0xFF333333)
@@ -66,7 +66,6 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Added Confirm Password field
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
@@ -79,20 +78,19 @@ fun SignUpScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                // Updated onClick to pass all three fields
                 onClick = { onSignUpClick(email, password, confirmPassword) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text("Sign Up") // Changed button text
+                Text("Sign Up")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             TextButton(onClick = onLoginClick) {
-                Text("Already have an account? Log in") // Changed text button
+                Text("Already have an account? Log in")
             }
         }
     }

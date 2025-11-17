@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.os.Build
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -23,25 +24,65 @@ class LocationHandler(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): Location? {
-        val hasPermission = ContextCompat.checkSelfPermission(
+        val hasFinePermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val hasCoarsePermission = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        if (!hasPermission) {
+        if (!hasFinePermission && !hasCoarsePermission) {
             throw LocationPermissionException("Location permission not granted.")
         }
 
-        val lastLocation = fusedLocationClient.lastLocation.await()
-        if (lastLocation != null) {
-            return lastLocation
+        val priority = if (hasFinePermission) {
+            Priority.PRIORITY_HIGH_ACCURACY
+        } else {
+            Priority.PRIORITY_BALANCED_POWER_ACCURACY
         }
 
         val cancellationTokenSource = CancellationTokenSource()
-        return fusedLocationClient.getCurrentLocation(
-            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-            cancellationTokenSource.token
-        ).await()
+
+        try {
+            Log.d(
+                "LocationHandler",
+                "Attempting fusedLocationClient.getCurrentLocation()"
+            )
+            val currentLocation = fusedLocationClient.getCurrentLocation(
+                priority,
+                cancellationTokenSource.token
+            ).await()
+
+            if (currentLocation != null) {
+                Log.d(
+                    "LocationHandler",
+                    "getCurrentLocation SUCCESS: $currentLocation"
+                )
+                return currentLocation
+            } else {
+                Log.w("LocationHandler", "getCurrentLocation returned NULL")
+            }
+
+        } catch (e: Exception) {
+            Log.e("LocationHandler", "getCurrentLocation FAILED", e)
+        }
+
+        try {
+            Log.d("LocationHandler", "Attempting fusedLocationClient.lastLocation()") // <-- ADDED
+            val last = fusedLocationClient.lastLocation.await()
+            if (last != null) {
+                Log.d("LocationHandler", "lastLocation SUCCESS: $last") // <-- ADDED
+            } else {
+                Log.w("LocationHandler", "lastLocation returned NULL") // <-- ADDED
+            }
+            return last
+        } catch (e: Exception) {
+            Log.e("LocationHandler", "lastLocation FAILED", e) // <-- ADDED
+            return null
+        }
     }
 
     fun getCityName(location: Location): String {
@@ -58,7 +99,6 @@ class LocationHandler(private val context: Context) {
         }
     }
 }
-
 
 class LocationPermissionException(message: String) : Exception(message)
 

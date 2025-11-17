@@ -18,7 +18,11 @@ suspend fun steamLoginHandler(context: Context?, formContent: String) {
     if (steamIdPattern.containsMatchIn(formContent)) {
         steamId = formContent
     } else {
-        val vanityUrl = URLBuilder("http://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${context?.getString(R.string.STEAM_API_KEY)}&vanityurl=${formContent}").build()
+        val vanityUrl = URLBuilder(
+            "http://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${
+                context?.getString(R.string.STEAM_API_KEY)
+            }&vanityurl=${formContent}"
+        ).build()
         val response = client.get(vanityUrl)
         val responseJson = JSONObject(response.bodyAsText())
             .getJSONObject("response")
@@ -31,7 +35,11 @@ suspend fun steamLoginHandler(context: Context?, formContent: String) {
         steamId = responseJson.getString("steamid")
     }
 
-    val url = URLBuilder("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${context?.getString(R.string.STEAM_API_KEY)}&steamids=${steamId}").build()
+    val url = URLBuilder(
+        "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${
+            context?.getString(R.string.STEAM_API_KEY)
+        }&steamids=${steamId}"
+    ).build()
 
     val response = client.get(url)
     val responseJson = JSONObject(response.bodyAsText())
