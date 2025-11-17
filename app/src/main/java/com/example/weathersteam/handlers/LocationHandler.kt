@@ -50,7 +50,7 @@ class LocationHandler(private val context: Context) {
             Log.d(
                 "LocationHandler",
                 "Attempting fusedLocationClient.getCurrentLocation()"
-            ) // <-- ADDED
+            )
             val currentLocation = fusedLocationClient.getCurrentLocation(
                 priority,
                 cancellationTokenSource.token
@@ -60,18 +60,16 @@ class LocationHandler(private val context: Context) {
                 Log.d(
                     "LocationHandler",
                     "getCurrentLocation SUCCESS: $currentLocation"
-                ) // <-- ADDED
+                )
                 return currentLocation
             } else {
-                Log.w("LocationHandler", "getCurrentLocation returned NULL") // <-- ADDED
+                Log.w("LocationHandler", "getCurrentLocation returned NULL")
             }
 
         } catch (e: Exception) {
-            // Log this error or handle it
-            Log.e("LocationHandler", "getCurrentLocation FAILED", e) // <-- MOST IMPORTANT
+            Log.e("LocationHandler", "getCurrentLocation FAILED", e)
         }
 
-        // --- Fallback ---
         try {
             Log.d("LocationHandler", "Attempting fusedLocationClient.lastLocation()") // <-- ADDED
             val last = fusedLocationClient.lastLocation.await()
@@ -83,9 +81,10 @@ class LocationHandler(private val context: Context) {
             return last
         } catch (e: Exception) {
             Log.e("LocationHandler", "lastLocation FAILED", e) // <-- ADDED
-            return null // Return null if fallback also fails
+            return null
         }
     }
+
     fun getCityName(location: Location): String {
         return try {
             val addresses = if (Build.VERSION.SDK_INT >= 33) {
@@ -100,7 +99,6 @@ class LocationHandler(private val context: Context) {
         }
     }
 }
-
 
 class LocationPermissionException(message: String) : Exception(message)
 

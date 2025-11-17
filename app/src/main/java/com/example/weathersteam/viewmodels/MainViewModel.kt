@@ -30,7 +30,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
-    init { fetchData() }
+    init {
+        fetchData()
+    }
 
     fun fetchData() {
         viewModelScope.launch {

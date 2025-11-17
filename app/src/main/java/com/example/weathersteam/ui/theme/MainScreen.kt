@@ -72,7 +72,6 @@ fun MainScreen(
                 )
             }
 
-            // Success State (no changes needed here)
             else -> {
                 SuccessView(
                     location = uiState.location,

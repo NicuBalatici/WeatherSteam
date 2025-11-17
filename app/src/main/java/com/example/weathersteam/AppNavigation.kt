@@ -28,7 +28,6 @@ fun AppNavigation(context: Context?) {
 
     NavHost(navController = navController, startDestination = AppRoutes.LOGIN) {
 
-        // Login Screen Destination
         composable(AppRoutes.LOGIN) {
             LoginScreen(
                 onLoginClick = { email, password ->
@@ -63,7 +62,6 @@ fun AppNavigation(context: Context?) {
             )
         }
 
-        // Sign Up Screen Destination
         composable(AppRoutes.SIGN_UP) {
             SignUpScreen(
                 onSignUpClick = { email, password, confirmPassword ->

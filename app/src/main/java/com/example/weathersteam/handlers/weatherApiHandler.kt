@@ -12,7 +12,8 @@ suspend fun weatherApiHandler(latitude: Double, longitude: Double): WeatherData 
     val client = HttpClient(CIO)
 
     try {
-        val weatherUrl = URLBuilder("https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=temperature_2m&current=temperature_2m,rain,snowfall,cloud_cover,wind_speed_10m").build()
+        val weatherUrl =
+            URLBuilder("https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=temperature_2m&current=temperature_2m,rain,snowfall,cloud_cover,wind_speed_10m").build()
         val response = client.get(weatherUrl)
         val responseJson = JSONObject(response.bodyAsText()).getJSONObject("current")
 
