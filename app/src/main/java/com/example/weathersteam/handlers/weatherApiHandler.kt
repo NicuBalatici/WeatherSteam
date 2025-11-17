@@ -12,7 +12,7 @@ suspend fun weatherApiHandler(latitude: Double, longitude: Double): WeatherData 
     val client = HttpClient(CIO)
 
     try {
-        val weatherUrl = URLBuilder("https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=temperature_2m,rain,cloud_cover,snowfall,precipitation").build()
+        val weatherUrl = URLBuilder("https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=temperature_2m&current=temperature_2m,rain,snowfall,cloud_cover,wind_speed_10m").build()
         val response = client.get(weatherUrl)
         val responseJson = JSONObject(response.bodyAsText()).getJSONObject("current")
 
@@ -20,14 +20,14 @@ suspend fun weatherApiHandler(latitude: Double, longitude: Double): WeatherData 
         val rain = responseJson.getDouble("rain")
         val cloudCover = responseJson.getInt("cloud_cover")
         val snowfall = responseJson.getDouble("snowfall")
-        val precipitation = responseJson.getDouble("precipitation")
+        val windSpeed = responseJson.getDouble("wind_speed_10m")
 
         return WeatherData(
             temperature = temp,
             rain = rain,
             cloudCover = cloudCover,
             snowfall = snowfall,
-            precipitation = precipitation
+            windSpeed = windSpeed
         )
 
     } finally {

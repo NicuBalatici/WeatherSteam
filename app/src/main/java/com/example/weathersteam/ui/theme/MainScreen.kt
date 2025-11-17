@@ -1,6 +1,5 @@
 package com.example.weathersteam.ui.theme
 
-// --- NEW --- Import necessary ActivityResult and Permission tools
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,6 +9,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,6 +40,10 @@ fun MainScreen(
             }
         }
     )
+
+    LaunchedEffect(Unit) {
+        mainViewModel.fetchData()
+    }
 
     Box(
         modifier = Modifier
@@ -74,7 +78,8 @@ fun MainScreen(
                     location = uiState.location,
                     temperature = uiState.temperature,
                     game = uiState.recommendedGame,
-                    onLogoutClick = onLogoutClick
+                    onLogoutClick = onLogoutClick,
+                    onRefreshClick = { mainViewModel.fetchData() }
                 )
             }
         }
@@ -86,7 +91,8 @@ fun SuccessView(
     location: String?,
     temperature: String?,
     game: String?,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    onRefreshClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -113,6 +119,16 @@ fun SuccessView(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            onClick = onRefreshClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Text("Refresh Location")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = onLogoutClick,
             modifier = Modifier

@@ -5,5 +5,5 @@ data class WeatherData(
     val rain: Double,
     val cloudCover: Int,
     val snowfall: Double,
-    val precipitation: Double
+    val windSpeed: Double
 )
