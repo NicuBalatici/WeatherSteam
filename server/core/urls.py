@@ -16,8 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.urls import path
+from core.views import login_api # Import the view you just made
+import core.views as views
 
 urlpatterns = [
+    path('api/register/', views.register_api, name='register_api'),
+    path('api/login/', login_api, name='login_api'),
     path('admin/', admin.site.urls),
     path('api/', include('weathersteam.urls'))
 ]

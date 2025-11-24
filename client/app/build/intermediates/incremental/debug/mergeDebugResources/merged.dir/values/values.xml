@@ -121,7 +121,7 @@
     <integer name="google_play_services_version">12451000</integer>
     <integer name="m3c_window_layout_in_display_cutout_mode">1</integer>
     <integer name="status_bar_notification_info_maxnum">999</integer>
-    <string name="STEAM_API_KEY" translatable="false">"5A3CC9762C522EC42C4F50FDE051BC5B"</string>
+    <string name="STEAM_API_KEY" translatable="false">""</string>
     <string name="androidx_startup" translatable="false">androidx.startup</string>
     <string name="app_name">WeatherSteam</string>
     <string name="autofill">Autofill</string>

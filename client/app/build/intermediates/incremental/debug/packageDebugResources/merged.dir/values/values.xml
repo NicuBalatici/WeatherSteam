@@ -7,7 +7,7 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="white">#FFFFFFFF</color>
-    <string name="STEAM_API_KEY" translatable="false">"5A3CC9762C522EC42C4F50FDE051BC5B"</string>
+    <string name="STEAM_API_KEY" translatable="false">""</string>
     <string name="app_name">WeatherSteam</string>
     <style name="Theme.WeatherSteam" parent="android:Theme.Material.Light.NoActionBar"/>
 </resources>
