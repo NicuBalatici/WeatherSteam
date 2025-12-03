@@ -82,7 +82,7 @@ fun LoginScreen(
                     // 2. The Logic happens here when button is clicked
                     if (email.isNotEmpty() && password.isNotEmpty()) {
                         isLoading = true
-                        loginHandler.performLogin(email, password) { success, message ->
+                        loginHandler.performLogin(context, email, password) { success, message ->
                             isLoading = false
                             if (success) {
                                 Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()

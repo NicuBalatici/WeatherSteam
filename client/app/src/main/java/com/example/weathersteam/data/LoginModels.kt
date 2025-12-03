@@ -1,5 +1,8 @@
 package com.example.weathersteam.data
 
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 data class RegisterRequest(
     val email: String,
     val password: String,
@@ -16,9 +19,9 @@ data class LoginRequest(
     val password: String
 )
 
-data class LoginResponse(
+data class LoginResponse @OptIn(ExperimentalUuidApi::class) constructor(
     val success: Boolean,
     val message: String?,
-    val user_id: Int?,
-    val username: String?
+    val username: String?,
+    val token: String?
 )

@@ -1,8 +1,11 @@
 package com.example.weathersteam.handlers
 
+import android.content.Context
 import android.util.Log
+import com.example.weathersteam.BuildConfig
 import com.example.weathersteam.data.LoginRequest
 import com.example.weathersteam.data.LoginResponse
+import com.example.weathersteam.helpers.SessionManager
 import com.example.weathersteam.network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
@@ -12,7 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object LoginNetworkClient {
     // USE 10.0.2.2 for Emulator, or your IP (192.168.x.x) for physical device
-    private const val BASE_URL = "http://10.0.2.2:8000/"
+    private const val BASE_URL = BuildConfig.SERVER_BASE_ADDRESS
 
     val api: ApiService by lazy {
         Retrofit.Builder()
@@ -24,12 +27,18 @@ object LoginNetworkClient {
 }
 
 class LoginHandler {
-    fun performLogin(email: String, pass: String, onResult: (Boolean, String) -> Unit) {
+    fun performLogin(context: Context, email: String, pass: String, onResult: (Boolean, String) -> Unit) {
         val request = LoginRequest(email = email, password = pass)
+        val sessionManager = SessionManager(context)
 
         LoginNetworkClient.api.loginUser(request).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful && response.body()?.success == true) {
+                    val token = response.body()?.token
+                    if (token != null) {
+                        sessionManager.saveAuthToken(token)
+                    }
+
                     onResult(true, "Welcome ${response.body()?.username}!")
                 } else {
                     val msg = response.body()?.message ?: "Login Failed"
