@@ -2,7 +2,7 @@ package com.example.weathersteam.handlers
 
 import android.content.Context
 import android.widget.Toast
-import com.example.weathersteam.R
+import com.example.weathersteam.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.get
@@ -14,13 +14,14 @@ suspend fun steamLoginHandler(context: Context?, formContent: String) {
     val client = HttpClient(CIO)
     val steamIdPattern = "[0-9]+".toRegex()
     var steamId: String
+    val steamKey = BuildConfig.STEAM_API_KEY
 
     if (steamIdPattern.containsMatchIn(formContent)) {
         steamId = formContent
     } else {
         val vanityUrl = URLBuilder(
             "http://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${
-                context?.getString(R.string.STEAM_API_KEY)
+                steamKey
             }&vanityurl=${formContent}"
         ).build()
         val response = client.get(vanityUrl)
@@ -37,7 +38,7 @@ suspend fun steamLoginHandler(context: Context?, formContent: String) {
 
     val url = URLBuilder(
         "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${
-            context?.getString(R.string.STEAM_API_KEY)
+            steamKey
         }&steamids=${steamId}"
     ).build()
 

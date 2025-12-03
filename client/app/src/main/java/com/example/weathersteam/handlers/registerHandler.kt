@@ -1,49 +1,37 @@
 package com.example.weathersteam.handlers
 
-import android.content.Context
-import com.example.weathersteam.data.RegisterData
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.request.post
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
+import android.util.Log
+import com.example.weathersteam.data.RegisterRequest
+import com.example.weathersteam.data.RegisterResponse
+import com.example.weathersteam.handlers.LoginNetworkClient // Re-using the client from LoginHandler
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-import io.ktor.client.request.*
-import io.ktor.http.*
+class RegisterHandler {
 
-suspend fun registerHandler(context: Context?, username: String, password: String, confirmPassword: String): RegisterData? {
-    if (password != confirmPassword) {
-        return null
-    }
+    fun performRegistration(
+        username: String,
+        email: String,
+        password: String,
+        onResult: (Boolean, String) -> Unit
+    ) {
+        val request = RegisterRequest(username = username, email = email, password = password)
 
-    val registerData = RegisterData(username, password)
+        LoginNetworkClient.api.registerUser(request).enqueue(object : Callback<RegisterResponse> {
+            override fun onResponse(call: Call<RegisterResponse>, response: Response<RegisterResponse>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    onResult(true, "Account Created! Please Login.")
+                } else {
+                    val msg = response.body()?.message ?: "Registration Failed"
+                    onResult(false, msg)
+                }
+            }
 
-    val jsonBody = """
-    {
-        "name": "${registerData.name}",
-        "password": "${registerData.password}"
-    }
-    """.trimIndent()
-
-    val client = HttpClient(CIO)
-    val url = "http://10.149.66.235:8081/api/users"
-
-    return try {
-        val response: HttpResponse = client.post(url) {
-            contentType(ContentType.Application.Json)
-            setBody(jsonBody)
-        }
-
-        client.close()
-
-        if (response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK) {
-            registerData
-        } else {
-            null
-        }
-
-    } catch (e: Exception) {
-        client.close()
-        null
+            override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
+                Log.e("RegisterHandler", "Error: ${t.message}")
+                onResult(false, "Connection Error: Check Server")
+            }
+        })
     }
 }

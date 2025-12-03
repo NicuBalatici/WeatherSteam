@@ -12,6 +12,12 @@ val steamApiKey: String =
         providers
     ).getProperty("STEAM_API_KEY") ?: ""
 
+val baseServerAddress: String =
+    gradleLocalProperties(
+        rootDir,
+        providers
+    ).getProperty("SERVER_BASE_ADDRESS") ?: ""
+
 android {
 
     namespace = "com.example.weathersteam"
@@ -28,7 +34,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        resValue("string", "STEAM_API_KEY", "\"" + steamApiKey + "\"")
+        buildConfigField("String", "STEAM_API_KEY", "\"" + steamApiKey + "\"")
+        buildConfigField("String", "SERVER_BASE_ADDRESS", "\"" + baseServerAddress + "\"")
     }
 
     buildTypes {
@@ -42,6 +49,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -50,6 +58,8 @@ kotlin {
 }
 
 dependencies {
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)

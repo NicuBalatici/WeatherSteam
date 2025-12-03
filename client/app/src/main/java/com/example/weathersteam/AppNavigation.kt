@@ -2,100 +2,66 @@ package com.example.weathersteam
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.weathersteam.handlers.registerHandler
-import com.example.weathersteam.handlers.steamLoginHandler
+import com.example.weathersteam.helpers.SessionManager
 import com.example.weathersteam.ui.theme.LoginScreen
 import com.example.weathersteam.ui.theme.MainScreen
-import com.example.weathersteam.ui.theme.SignUpScreen
-import com.example.weathersteam.ui.theme.SteamLoginScreen
-import kotlinx.coroutines.launch
+ import com.example.weathersteam.ui.theme.SignUpScreen
 
 object AppRoutes {
     const val LOGIN = "login"
-    const val STEAM_LOGIN = "steam_login"
-    const val SIGN_UP = "signup"
     const val MAIN = "main"
+    const val REGISTER = "register"
 }
 
 @Composable
 fun AppNavigation(context: Context?) {
     val navController = rememberNavController()
-    val coroutineScope = rememberCoroutineScope()
+    val sessionManager = context?.let { SessionManager(it) }
+    val startRoute = if (sessionManager?.isTokenExpired() == true) AppRoutes.LOGIN else AppRoutes.MAIN
 
-    NavHost(navController = navController, startDestination = AppRoutes.LOGIN) {
+    NavHost(navController = navController, startDestination = startRoute) {
 
-        composable(AppRoutes.LOGIN) {
+        composable(route = AppRoutes.LOGIN) {
             LoginScreen(
-                onLoginClick = { email, password ->
-                    println("Login attempt with $email")
-
-                    navController.navigate(AppRoutes.MAIN) {
-                        popUpTo(AppRoutes.LOGIN) {
+                onLoginSuccess = {
+                    navController.navigate(route = AppRoutes.MAIN) {
+                        popUpTo(route = AppRoutes.LOGIN) {
                             inclusive = true
                         }
                     }
                 },
                 onRegisterClick = {
-                    navController.navigate(AppRoutes.SIGN_UP)
-                },
-                onSteamLoginClick = {
-                    navController.navigate((AppRoutes.STEAM_LOGIN))
+                    navController.navigate(AppRoutes.REGISTER)
                 }
             )
         }
 
-        composable(AppRoutes.STEAM_LOGIN) {
-            SteamLoginScreen(
-                onSteamLoginClick = { formContent ->
-                    coroutineScope.launch {
-                        steamLoginHandler(context, formContent)
-                    }
-                },
-                onRegisterClick = {
-                    navController.navigate(AppRoutes.SIGN_UP)
-                }
-            )
-        }
-
-        composable(AppRoutes.SIGN_UP) {
-            SignUpScreen(
-                onSignUpClick = { username, password, confirmPassword ->
-                    coroutineScope.launch {
-                        registerHandler(context, username, password, confirmPassword)
-                    }
-                },
-                onLoginClick = {
-                    navController.navigate(AppRoutes.LOGIN) {
-                        popUpTo(AppRoutes.LOGIN) {
-                            inclusive = true
-                        }
-                    }
-                },
-            )
-        }
-
-        composable(AppRoutes.MAIN) {
+        composable(route = AppRoutes.MAIN) {
             MainScreen(
                 onLogoutClick = {
-                    navController.navigate(AppRoutes.LOGIN) {
-                        popUpTo(AppRoutes.MAIN) {
+                    sessionManager?.logout()
+                    navController.navigate(route = AppRoutes.LOGIN) {
+                        popUpTo(route = AppRoutes.LOGIN) {
                             inclusive = true
                         }
                     }
                 }
             )
         }
+
+        composable(route = AppRoutes.REGISTER) {
+            SignUpScreen(
+                onRegisterSuccess = {
+                    navController.navigate(AppRoutes.LOGIN)
+                },
+                onLoginClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun AppNavigationPreview() {
-    AppNavigation(null)
-}
-
