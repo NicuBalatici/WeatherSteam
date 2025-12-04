@@ -6,7 +6,7 @@ class Games(models.Model):
     id = models.UUIDField(primary_key=True)
     image_url = models.CharField(unique=True, max_length=255, blank=True, null=True)
     tags = models.CharField(max_length=255, blank=True, null=True)
-    title = models.CharField(max_length=255)
+    title = models.CharField(unique=True, max_length=255)
 
     class Meta:
         managed = False
@@ -23,3 +23,11 @@ class Users(models.Model):
     class Meta:
         managed = False
         db_table = 'users'
+
+class UsersGames(models.Model):
+    user_id = models.UUIDField()
+    game_id = models.UUIDField()
+
+    class Meta:
+        managed = False
+        db_table = 'users_games'
