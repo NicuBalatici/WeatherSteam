@@ -51,7 +51,9 @@ fun AppNavigation(context: Context?) {
 
         // --- MAIN MENU ---
         composable(route = AppRoutes.MAIN) {
+            val currentUsername = sessionManager?.fetchUserFromToken() ?: "Guest"
             MainScreen(
+                username = currentUsername,
                 onWeatherChoiceClick = { navController.navigate(AppRoutes.WEATHER) },
                 onRandomChoiceClick = { navController.navigate(AppRoutes.RANDOM) },
                 onMyGamesClick = { navController.navigate(AppRoutes.MY_GAMES) },

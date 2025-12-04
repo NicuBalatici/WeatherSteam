@@ -25,6 +25,7 @@ val SketchTextColor = Color(0xFF212121)
 
 @Composable
 fun MainScreen(
+    username: String,
     onWeatherChoiceClick: () -> Unit,
     onRandomChoiceClick: () -> Unit,
     onMyGamesClick: () -> Unit,
@@ -37,7 +38,7 @@ fun MainScreen(
         contentAlignment = Alignment.Center
     ) {
         SuccessView(
-            username = "bAnAtUL",
+            username = username,
             onWeatherChoiceClick = onWeatherChoiceClick,
             onRandomChoiceClick = onRandomChoiceClick,
             onMyGamesClick = onMyGamesClick,
