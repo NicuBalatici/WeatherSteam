@@ -1,167 +1,137 @@
 package com.example.weathersteam.ui.theme
 
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.weathersteam.viewmodels.MainViewModel
+
+// Colors
+val ButtonBlueBg = Color(0xFF90CAF9)
+val ButtonBlueBorder = Color(0xFF42A5F5)
+val ButtonGreenBg = Color(0xFFA5D6A7)
+val ButtonGreenBorder = Color(0xFF66BB6A)
+val ButtonYellowBg = Color(0xFFFFF59D)
+val ButtonYellowBorder = Color(0xFFFFEE58)
+val ButtonRedBg = Color(0xFFEF9A9A) // Light Red for Logout
+val ButtonRedBorder = Color(0xFFEF5350)
+val SketchTextColor = Color(0xFF212121)
 
 @Composable
 fun MainScreen(
-    mainViewModel: MainViewModel = viewModel(),
-    onLogoutClick: () -> Unit = {}
+    onWeatherChoiceClick: () -> Unit,
+    onRandomChoiceClick: () -> Unit,
+    onMyGamesClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
-    val uiState by mainViewModel.uiState.collectAsState()
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if (isGranted) {
-                mainViewModel.fetchData()
-            } else {
-                // User denied permission, you could show a message here
-            }
-        }
-    )
-
-    LaunchedEffect(Unit) {
-        mainViewModel.fetchData()
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(32.dp),
         contentAlignment = Alignment.Center
     ) {
-        when {
-            uiState.isLoading -> {
-                CircularProgressIndicator()
-            }
-
-            uiState.needsPermission -> {
-                PermissionView(
-                    onGrantPermissionClick = {
-                        permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-                    }
-                )
-            }
-
-            uiState.error != null -> {
-                Text(
-                    text = "Error: ${uiState.error}",
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            else -> {
-                SuccessView(
-                    location = uiState.location,
-                    temperature = uiState.temperature,
-                    game = uiState.recommendedGame,
-                    onLogoutClick = onLogoutClick,
-                    onRefreshClick = { mainViewModel.fetchData() }
-                )
-            }
-        }
+        SuccessView(
+            username = "bAnAtUL",
+            onWeatherChoiceClick = onWeatherChoiceClick,
+            onRandomChoiceClick = onRandomChoiceClick,
+            onMyGamesClick = onMyGamesClick,
+            onLogoutClick = onLogoutClick
+        )
     }
 }
 
 @Composable
 fun SuccessView(
-    location: String?,
-    temperature: String?,
-    game: String?,
-    onLogoutClick: () -> Unit,
-    onRefreshClick: () -> Unit
+    username: String,
+    onWeatherChoiceClick: () -> Unit,
+    onRandomChoiceClick: () -> Unit,
+    onMyGamesClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "From where you are (${location ?: "Unknown"}),\nyou have the temperature ${temperature ?: "N/A"}.",
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center,
-            color = Color(0xFF333333)
+            text = "Welcome,\n$username",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = SketchTextColor,
+            lineHeight = 40.sp,
+            modifier = Modifier.padding(bottom = 40.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "The recommended game is:",
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center,
-            color = Color(0xFF555555)
-        )
-        Text(
-            text = game ?: "No recommendation",
-            fontSize = 22.sp,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            onClick = onRefreshClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = MaterialTheme.shapes.medium
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Refresh Location")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = onLogoutClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Text("Logout")
+            MenuButton(
+                text = "Weather Choice",
+                backgroundColor = ButtonBlueBg,
+                borderColor = ButtonBlueBorder,
+                onClick = onWeatherChoiceClick
+            )
+
+            MenuButton(
+                text = "Random Choice",
+                backgroundColor = ButtonGreenBg,
+                borderColor = ButtonGreenBorder,
+                onClick = onRandomChoiceClick
+            )
+
+            MenuButton(
+                text = "My Games",
+                backgroundColor = ButtonYellowBg,
+                borderColor = ButtonYellowBorder,
+                onClick = onMyGamesClick
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Logout Button
+            MenuButton(
+                text = "Logout",
+                backgroundColor = ButtonRedBg,
+                borderColor = ButtonRedBorder,
+                onClick = onLogoutClick
+            )
         }
     }
 }
 
 @Composable
-fun PermissionView(
-    onGrantPermissionClick: () -> Unit
+fun MenuButton(
+    text: String,
+    backgroundColor: Color,
+    borderColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Surface(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth(0.85f)
+            .height(60.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = backgroundColor,
+        border = BorderStroke(3.dp, borderColor),
+        shadowElevation = 6.dp
     ) {
-        Text(
-            text = "We need your location to get the weather.",
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onGrantPermissionClick) {
-            Text("Grant Permission")
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = text,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = SketchTextColor
+            )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    MainScreen()
 }
