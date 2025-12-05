@@ -14,6 +14,32 @@ class SessionManager(context: Context) {
         const val WEATHER_STEAM_USER_TOKEN = "user_auth_token"
     }
 
+    fun fetchUserIdFromToken(): String {
+        val token = fetchAuthToken() ?: return "Guest"
+
+        try {
+            val parts = token.split(".")
+            if (parts.size != 3) return "Guest"
+            val payload = parts[1]
+
+            // Decode the payload
+            val payloadBytes = Base64.decode(payload, Base64.URL_SAFE)
+            val payloadString = String(payloadBytes)
+
+            val jsonObject = JSONObject(payloadString)
+
+            return if (jsonObject.has("user_id")) {
+                jsonObject.getString("user_id")
+            } else {
+                ""
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return "Guest"
+        }
+    }
+
     fun fetchUserFromToken(): String {
         val token = fetchAuthToken() ?: return "Guest"
 
@@ -63,7 +89,7 @@ class SessionManager(context: Context) {
 
             // 2. Decode using URL_SAFE (Crucial for JWTs)
             // Ensure you import android.util.Base64
-            val payloadBytes = android.util.Base64.decode(payload, android.util.Base64.URL_SAFE)
+            val payloadBytes = Base64.decode(payload, Base64.URL_SAFE)
             val payloadString = String(payloadBytes)
 
             val jsonObject = JSONObject(payloadString)
