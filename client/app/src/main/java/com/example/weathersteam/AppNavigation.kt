@@ -2,6 +2,8 @@ package com.example.weathersteam
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -32,6 +34,10 @@ fun AppNavigation(context: Context?) {
     NavHost(navController = navController, startDestination = startRoute) {
 
         composable(route = AppRoutes.LOGIN) {
+            LaunchedEffect(Unit) {
+                sessionManager?.logout()
+            }
+
             LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(route = AppRoutes.MAIN) {
@@ -51,14 +57,16 @@ fun AppNavigation(context: Context?) {
 
         // --- MAIN MENU ---
         composable(route = AppRoutes.MAIN) {
-            val currentUsername = sessionManager?.fetchUserFromToken() ?: "Guest"
+            val currentUsername = remember {
+                sessionManager?.fetchUserFromToken() ?: "Guest"
+            }
+
             MainScreen(
                 username = currentUsername,
                 onWeatherChoiceClick = { navController.navigate(AppRoutes.WEATHER) },
                 onRandomChoiceClick = { navController.navigate(AppRoutes.RANDOM) },
                 onMyGamesClick = { navController.navigate(AppRoutes.MY_GAMES) },
                 onLogoutClick = {
-                    sessionManager?.logout()
                     navController.navigate(route = AppRoutes.LOGIN) {
                         popUpTo(route = AppRoutes.MAIN) { inclusive = true }
                     }
