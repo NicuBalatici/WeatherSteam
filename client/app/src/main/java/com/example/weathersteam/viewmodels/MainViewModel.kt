@@ -13,12 +13,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import androidx.lifecycle.application
+import com.example.weathersteam.data.Game
+import com.example.weathersteam.handlers.GameHandler
+import com.example.weathersteam.helpers.SessionManager
+import kotlin.uuid.ExperimentalUuidApi
 
 data class MainUiState(
     val temperature: String? = null,
     val isLoading: Boolean = true,
     val location: String? = null,
     val recommendedGame: String? = null,
+    val recommendedGameImageUrl: String? = null,
     val error: String? = null,
     val needsPermission: Boolean = false
 )
@@ -30,10 +36,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
-    init {
-        fetchData()
-    }
-
+    @OptIn(ExperimentalUuidApi::class)
     fun fetchData() {
         viewModelScope.launch {
             // Set loading state and clear any previous permission error
@@ -48,17 +51,41 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val userLongitude = location.longitude
                     val cityName = locationHandler.getCityName(location)
                     val weatherData = weatherApiHandler(userLatitude, userLongitude)
+                    val weatherType = weatherType(weatherData)
 
-                    val recommendedGame = "ghim"
+                    val userId = SessionManager(context = application.baseContext).fetchUserIdFromToken()
+                    val weatherString = weatherType.toString()
+                    val moodString = ""
+                    val paceString = ""
+                    val difficultyString = ""
 
-                    // 5. Update UI with Success
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            location = cityName,
-                            temperature = "${weatherData.temperature}°C",
-                            recommendedGame = recommendedGame
-                        )
+                    var recommendedGame: Game
+
+                    val gameHandler = GameHandler()
+
+                    gameHandler.fetchGame(
+                        userId = userId,
+                        weather = weatherString,
+                        mood = moodString,
+                        pace = paceString,
+                        difficulty = difficultyString
+                    ) { success, game, message ->
+                        if (success && game != null) {
+                            println("I received the game: ${game.title}")
+                            recommendedGame = game
+                            val recommendedGameTitle = recommendedGame.title
+                            val recommendedGameImageUrl = recommendedGame.imageUrl
+
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    location = cityName,
+                                    temperature = "${weatherData.temperature}°C",
+                                    recommendedGame = recommendedGameTitle,
+                                    recommendedGameImageUrl = recommendedGameImageUrl
+                                )
+                            }
+                        }
                     }
                 } else {
                     _uiState.update {

@@ -5,20 +5,44 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.weathersteam.data.Game
+import com.example.weathersteam.handlers.GameHandler
+import com.example.weathersteam.helpers.SessionManager
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 @Composable
 fun MyGamesScreen(onBackClick: () -> Unit) {
-    val myGames = listOf("Dota 2", "Counter-Strike 2", "Baldur's Gate 3", "Terraria", "Rust")
+
+    val context = LocalContext.current
+    val userId = SessionManager(context).fetchUserIdFromToken()
+
+    var gameList by remember { mutableStateOf<List<Game>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        GameHandler().fetchAllUserGames(userId = userId) { success, games, message ->
+            if (success && games != null) {
+                gameList = games
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp)
@@ -32,8 +56,8 @@ fun MyGamesScreen(onBackClick: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(myGames) { game ->
-                GameItem(name = game)
+            items(gameList) { game ->
+                GameItem(name = game.title, image = game.imageUrl)
             }
         }
 
@@ -47,13 +71,31 @@ fun MyGamesScreen(onBackClick: () -> Unit) {
 }
 
 @Composable
-fun GameItem(name: String) {
-    Box(
+fun GameItem(name: String, image: String) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFFFF59D), shape = RoundedCornerShape(12.dp))
-            .padding(16.dp)
+            .background(Color(0xFFFFF59D))
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(name, fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color(0xFF212121))
+        Text(
+            text = name,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF212121),
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        AsyncImage(
+            model = image,
+            contentDescription = "Game Image",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .width(100.dp)
+                .aspectRatio(2.65f / 1f)
+        )
     }
 }

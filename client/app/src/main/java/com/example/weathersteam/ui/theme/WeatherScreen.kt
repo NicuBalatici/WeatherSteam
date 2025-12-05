@@ -9,11 +9,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.weathersteam.viewmodels.MainViewModel
 
 @Composable
@@ -60,6 +62,7 @@ fun WeatherScreen(
                     location = uiState.location,
                     temperature = uiState.temperature,
                     game = uiState.recommendedGame,
+                    image = uiState.recommendedGameImageUrl,
                     onRefreshClick = { mainViewModel.fetchData() },
                     onBackClick = onBackClick
                 )
@@ -73,6 +76,7 @@ fun WeatherSuccessView(
     location: String?,
     temperature: String?,
     game: String?,
+    image: String?,
     onRefreshClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -86,6 +90,15 @@ fun WeatherSuccessView(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text("The recommended game is:", color = Color(0xFF555555))
+        AsyncImage(
+            model = image,
+            contentDescription = "Translated description of what the image contains",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxWidth().aspectRatio(2.65f / 1f)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(game ?: "No recommendation", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
 
         Spacer(modifier = Modifier.height(32.dp))

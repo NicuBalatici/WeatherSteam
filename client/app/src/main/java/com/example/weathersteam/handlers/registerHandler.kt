@@ -3,7 +3,7 @@ package com.example.weathersteam.handlers
 import android.util.Log
 import com.example.weathersteam.data.RegisterRequest
 import com.example.weathersteam.data.RegisterResponse
-import com.example.weathersteam.handlers.LoginNetworkClient // Re-using the client from LoginHandler
+import com.example.weathersteam.helpers.ApiNetworkClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -18,7 +18,7 @@ class RegisterHandler {
     ) {
         val request = RegisterRequest(username = username, email = email, password = password)
 
-        LoginNetworkClient.api.registerUser(request).enqueue(object : Callback<RegisterResponse> {
+        ApiNetworkClient.api.registerUser(request).enqueue(object : Callback<RegisterResponse> {
             override fun onResponse(call: Call<RegisterResponse>, response: Response<RegisterResponse>) {
                 if (response.isSuccessful && response.body()?.success == true) {
                     onResult(true, "Account Created! Please Login.")
