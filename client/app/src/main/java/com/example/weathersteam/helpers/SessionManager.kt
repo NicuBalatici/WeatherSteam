@@ -87,8 +87,6 @@ class SessionManager(context: Context) {
             if (parts.size != 3) return true
             val payload = parts[1]
 
-            // 2. Decode using URL_SAFE (Crucial for JWTs)
-            // Ensure you import android.util.Base64
             val payloadBytes = Base64.decode(payload, Base64.URL_SAFE)
             val payloadString = String(payloadBytes)
 

@@ -1,5 +1,6 @@
 package com.example.weathersteam.ui.theme
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,22 +24,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.weathersteam.handlers.SteamLoginHandler
+import kotlinx.coroutines.launch
 
 @Composable
 fun SteamLoginScreen(
-    onSteamLoginClick: (String) -> Unit = { _ -> },
+    onSteamLogin: () -> Unit = {},
     onRegisterClick: () -> Unit = {}
 ) {
     var steamId by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -182,7 +189,25 @@ fun SteamLoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { onSteamLoginClick(steamId) },
+                onClick = {
+                    if (steamId.isNotEmpty()) {
+                        scope.launch {
+                            try {
+                                SteamLoginHandler.performLogin(context, steamId) { success, message ->
+                                    if (success) {
+                                        Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
+                                            .show()
+                                        onSteamLogin()
+                                    } else {
+                                        Toast.makeText(context, "Error: $message", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)

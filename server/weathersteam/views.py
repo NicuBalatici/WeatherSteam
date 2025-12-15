@@ -78,7 +78,7 @@ def api_login(request):
                 'success': True,
                 'username': user.username,
                 'token': token
-            })
+            }, status=200)
         else:
             return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
     except Exception as e:
@@ -176,5 +176,50 @@ def api_game_user(request):
             games = [game for game in games if difficulty == game["tags"].split(',')[3]]
 
         return JsonResponse({'success': True, 'games': games}, status=200)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@require_http_methods(["POST"])
+def api_steam(request):
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        steam_id = data.get('steam_id')
+
+        if username is None:
+            return JsonResponse({'success': False, 'message': 'Invalid login request'}, status=400)
+
+        user = None
+
+        if steam_id is not None:
+            if Users.objects.filter(steam_id=steam_id).exists():
+                user = Users.objects.get(steam_id=steam_id)
+
+        if user is None:
+            user_id = uuid.uuid4()
+
+            if Users.objects.filter(username=username).exists():
+                username = generate_unique_username(username)
+
+            new_user = Users.objects.create(id=user_id, username=username, steam_id=steam_id, vanity_url_name=None, password=None, email=None)
+            new_user.save()
+            user = new_user
+
+        payload = {
+            'user_id': str(user.id),
+            'username': user.username,
+            'steam_id': user.steam_id,
+            'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7),
+            'iat': datetime.datetime.now(datetime.timezone.utc)
+        }
+
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
+        return JsonResponse({
+            'success': True,
+            'username': user.username,
+            'token': token
+        }, status=200)
+
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)

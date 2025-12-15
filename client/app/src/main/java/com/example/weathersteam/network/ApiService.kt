@@ -5,11 +5,11 @@ import com.example.weathersteam.data.LoginRequest
 import com.example.weathersteam.data.LoginResponse
 import com.example.weathersteam.data.RegisterRequest
 import com.example.weathersteam.data.RegisterResponse
+import com.example.weathersteam.data.SteamLoginRequest
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
@@ -25,4 +25,6 @@ interface ApiService {
         @Query("pace") pace: String?,
         @Query("difficulty") difficulty: String?
     ): Call<GameResponse>
+    @POST("api/login/steam/")
+    fun steamLogin(@Body request: SteamLoginRequest): Call<LoginResponse>
 }

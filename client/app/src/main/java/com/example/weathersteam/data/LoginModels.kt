@@ -1,7 +1,6 @@
 package com.example.weathersteam.data
 
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
+import com.google.gson.annotations.SerializedName
 
 data class RegisterRequest(
     val email: String,
@@ -19,9 +18,15 @@ data class LoginRequest(
     val password: String
 )
 
-data class LoginResponse @OptIn(ExperimentalUuidApi::class) constructor(
+data class LoginResponse(
     val success: Boolean,
     val message: String?,
     val username: String?,
     val token: String?
+)
+
+data class SteamLoginRequest(
+    val username: String,
+    @SerializedName("steam_id")
+    val steamId: String
 )
