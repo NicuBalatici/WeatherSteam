@@ -37,8 +37,6 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
     var image by remember { mutableStateOf<String?>(null) }
     var lastShakeTime by remember { mutableLongStateOf(0L) }
 
-    // --- HELPER FUNCTION TO FETCH GAME ---
-    // Defined here so we can call it from Shake OR Button click
     fun fetchRandomGame() {
         val userId = SessionManager(context = context).fetchUserIdFromToken()
         val gameHandler = GameHandler()
@@ -46,6 +44,7 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
         gameHandler.fetchGame(
             userId = userId,
             weather = "", // Empty params = pure random
+            lighting = "",
             mood = "",
             pace = "",
             difficulty = ""

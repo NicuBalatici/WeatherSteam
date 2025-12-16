@@ -73,7 +73,7 @@ fun WeatherScreen(
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Analyzing Weather Data...", color = SteamTextSec)
+                        Text("Analyzing Weather & Light...", color = SteamTextSec)
                     }
 
                     uiState.needsPermission -> {
@@ -127,6 +127,7 @@ fun WeatherScreen(
                         WeatherSuccessView(
                             location = uiState.location,
                             temperature = uiState.temperature,
+                            lighting = uiState.lighting,
                             game = uiState.recommendedGame,
                             image = uiState.recommendedGameImageUrl,
                             onRefreshClick = { mainViewModel.fetchData() },
@@ -143,6 +144,7 @@ fun WeatherScreen(
 fun WeatherSuccessView(
     location: String?,
     temperature: String?,
+    lighting: String?, // <--- Receive Parameter
     game: String?,
     image: String?,
     onRefreshClick: () -> Unit,
@@ -160,6 +162,8 @@ fun WeatherSuccessView(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(4.dp))
+
+        // Location & Temperature
         Text(
             text = "${location ?: "Unknown"} • ${temperature ?: "N/A"}",
             fontSize = 22.sp,
@@ -167,7 +171,17 @@ fun WeatherSuccessView(
             fontWeight = FontWeight.Medium
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        // --- NEW SENSOR TEXT ---
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Lighting Sensor: ${lighting ?: "Waiting..."}",
+            fontSize = 16.sp,
+            color = Color(0xFFFFD700), // Gold/Yellow Color to stand out
+            fontWeight = FontWeight.Bold
+        )
+        // -----------------------
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text(
             text = "RECOMMENDED FOR YOU",
@@ -181,7 +195,7 @@ fun WeatherSuccessView(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(16f / 9f) // Standard game banner ratio
+                .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(4.dp))
                 .background(Color.Black)
                 .border(1.dp, SteamBorder, RoundedCornerShape(4.dp))

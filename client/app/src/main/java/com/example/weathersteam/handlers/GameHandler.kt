@@ -14,10 +14,11 @@ class GameHandler {
         weather: String?,
         mood: String?,
         pace: String?,
+        lighting: String,
         difficulty: String?,
         onResult: (Boolean, Game?, String) -> Unit
     ) {
-        ApiNetworkClient.api.getUserGames(userId, weather, mood, pace, difficulty).enqueue(object : Callback<GameResponse> {
+        ApiNetworkClient.api.getUserGames(userId, weather, lighting, mood, pace, difficulty).enqueue(object : Callback<GameResponse> {
             override fun onResponse(call: Call<GameResponse>, response: Response<GameResponse>) {
                 if (response.isSuccessful && response.body()?.success == true) {
                     val gamesList = response.body()?.games ?: emptyList()
@@ -46,6 +47,7 @@ class GameHandler {
         ApiNetworkClient.api.getUserGames(
             userId,
             weather = "",
+            lighting = "",
             mood = "",
             pace = "",
             difficulty = ""
