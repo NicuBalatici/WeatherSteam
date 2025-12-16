@@ -1,6 +1,7 @@
 package com.example.weathersteam.ui.theme
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,11 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -46,6 +49,7 @@ fun SteamLoginScreen(
     var steamId by remember { mutableStateOf("") }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -191,9 +195,11 @@ fun SteamLoginScreen(
             Button(
                 onClick = {
                     if (steamId.isNotEmpty()) {
+                        isLoading = true
                         scope.launch {
                             try {
                                 SteamLoginHandler.performLogin(context, steamId) { success, message ->
+                                    isLoading = false
                                     if (success) {
                                         Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
                                             .show()
@@ -203,16 +209,35 @@ fun SteamLoginScreen(
                                     }
                                 }
                             } catch (e: Exception) {
+                                isLoading = false
                                 Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                             }
                         }
                     }
                 },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
-                Text("Login")
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 3.dp
+                    )
+                } else {
+                    Text("Login")
+                }
+            }
+
+            AnimatedVisibility(visible = isLoading) {
+                Text(
+                    text = "Configuring your profile... (This may take a moment)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))

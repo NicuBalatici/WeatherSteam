@@ -1,5 +1,7 @@
 package com.example.weathersteam.network
 
+import com.example.weathersteam.data.GameAddRequest
+import com.example.weathersteam.data.GameAddResponse
 import com.example.weathersteam.data.GameResponse
 import com.example.weathersteam.data.LoginRequest
 import com.example.weathersteam.data.LoginResponse
@@ -25,6 +27,10 @@ interface ApiService {
         @Query("pace") pace: String?,
         @Query("difficulty") difficulty: String?
     ): Call<GameResponse>
+    @POST("api/game/add/")
+    fun addGame(
+        @Body request: GameAddRequest
+    ): Call<GameAddResponse>
     @POST("api/login/steam/")
     fun steamLogin(@Body request: SteamLoginRequest): Call<LoginResponse>
 }
