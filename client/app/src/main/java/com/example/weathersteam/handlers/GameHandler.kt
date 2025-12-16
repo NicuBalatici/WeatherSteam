@@ -5,7 +5,6 @@ import com.example.weathersteam.data.GameAddRequest
 import com.example.weathersteam.data.GameAddResponse
 import com.example.weathersteam.helpers.ApiNetworkClient
 import com.example.weathersteam.data.GameResponse
-import com.example.weathersteam.data.RegisterRequest
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -55,19 +54,16 @@ class GameHandler {
             override fun onResponse(call: Call<GameResponse>, response: Response<GameResponse>) {
                 if (response.isSuccessful && response.body()?.success == true) {
                     val gamesList = response.body()?.games ?: emptyList()
-                    print(gamesList)
-                    if (gamesList.isNotEmpty()) {
-                        onResult(true, gamesList, "Game found!")
-                    } else {
-                        onResult(false, null, "No games found")
-                    }
+                    onResult(true, gamesList, "Success")
                 } else {
-                    onResult(false, null, "Server Error")
+                    val msg = response.body()?.message ?: "Unknown Server Error"
+                    onResult(false, null, msg)
                 }
             }
 
             override fun onFailure(call: Call<GameResponse>, t: Throwable) {
-                onResult(false, null, t.message ?: "Error")
+                android.util.Log.e("GameHandler", "Network Error", t)
+                onResult(false, null, t.localizedMessage ?: "Connection Error")
             }
         })
     }

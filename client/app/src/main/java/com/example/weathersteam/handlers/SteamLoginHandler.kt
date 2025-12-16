@@ -8,7 +8,6 @@ import com.example.weathersteam.data.LoginResponse
 import com.example.weathersteam.data.SteamLoginRequest
 import com.example.weathersteam.helpers.ApiNetworkClient
 import com.example.weathersteam.helpers.SessionManager
-import com.google.gson.annotations.SerializedName
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.get
@@ -17,6 +16,7 @@ import io.ktor.http.URLBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
@@ -101,10 +101,8 @@ class SteamLoginHandler {
                         }
 
                         CoroutineScope(Dispatchers.IO).launch {
-                            buildGameList(context)
+                            buildGameList(context, onResult)
                         }
-
-                        onResult(true, "Welcome ${response.body()?.username}!")
                     } else {
                         val msg = response.body()?.message ?: "Login Failed"
                         onResult(false, msg)
@@ -118,7 +116,7 @@ class SteamLoginHandler {
             })
         }
 
-        private suspend fun buildGameList(context: Context) {
+        private suspend fun buildGameList(context: Context, onResult: (Boolean, String) -> Unit) {
             val userId = SessionManager(context).fetchUserIdFromToken()
             val steamId = SessionManager(context).fetchSteamIdFromToken()
             val steamApiKey = BuildConfig.STEAM_API_KEY
@@ -151,17 +149,26 @@ class SteamLoginHandler {
             }
 
             GameHandler().fetchAllUserGames(userId) { success, gamesList, message ->
-                if (success) {
-                    val existingIds = gamesList?.map { it.steamGameId }?.toSet()
-                    val missingGames = steamGamesList.filter { !existingIds?.contains(it.steamGameId)!! }
+                if (!success) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        onResult(false, "Failed to fetch library")
+                    }
+                    return@fetchAllUserGames
+                }
+
+                val existingIds = gamesList?.map { it.steamGameId }?.toSet() ?: emptySet()
+                val missingGames = steamGamesList.filter { !existingIds.contains(it.steamGameId) }
+
+                if (missingGames.isNotEmpty()) {
                     CoroutineScope(Dispatchers.IO).launch {
                         handleMissingGames(missingGames)
+                        withContext(Dispatchers.Main) {
+                            onResult(true, "Profile Configured! Added ${missingGames.size} games.")
+                        }
                     }
                 } else {
-                    if (gamesList == null) {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            handleMissingGames(steamGamesList)
-                        }
+                    CoroutineScope(Dispatchers.Main).launch {
+                        onResult(true, "Welcome back! Your library is up to date.")
                     }
                 }
             }
