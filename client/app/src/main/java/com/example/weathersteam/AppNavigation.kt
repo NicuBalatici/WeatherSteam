@@ -14,9 +14,11 @@ import com.example.weathersteam.ui.theme.SignUpScreen
 import com.example.weathersteam.ui.theme.WeatherScreen
 import com.example.weathersteam.ui.theme.RandomGameScreen
 import com.example.weathersteam.ui.theme.MyGamesScreen
+import com.example.weathersteam.ui.theme.SteamLoginScreen
 
 object AppRoutes {
     const val LOGIN = "login"
+    const val STEAM_LOGIN = "steam_login"
     const val MAIN = "main"
     const val REGISTER = "register"
     const val WEATHER = "weather_choice"
@@ -29,7 +31,8 @@ fun AppNavigation(context: Context?) {
     val navController = rememberNavController()
     val sessionManager = context?.let { SessionManager(it) }
 
-    val startRoute = if (sessionManager?.isTokenExpired() == true) AppRoutes.LOGIN else AppRoutes.MAIN
+    val startRoute =
+        if (sessionManager?.isTokenExpired() == true) AppRoutes.LOGIN else AppRoutes.MAIN
 
     NavHost(navController = navController, startDestination = startRoute) {
 
@@ -44,7 +47,21 @@ fun AppNavigation(context: Context?) {
                         popUpTo(route = AppRoutes.LOGIN) { inclusive = true }
                     }
                 },
+                onSteamLoginClick = { navController.navigate(AppRoutes.STEAM_LOGIN)},
                 onRegisterClick = { navController.navigate(AppRoutes.REGISTER) }
+            )
+        }
+
+        composable(route = AppRoutes.STEAM_LOGIN) {
+            SteamLoginScreen(
+                onSteamLogin = {
+                    navController.navigate(AppRoutes.MAIN) {
+                        popUpTo(route = AppRoutes.LOGIN) { inclusive = true }
+                    }
+                },
+                onRegisterClick = {
+                    navController.navigate(AppRoutes.REGISTER)
+                }
             )
         }
 

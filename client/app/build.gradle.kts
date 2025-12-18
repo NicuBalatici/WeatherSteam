@@ -18,6 +18,12 @@ val baseServerAddress: String =
         providers
     ).getProperty("SERVER_BASE_ADDRESS") ?: ""
 
+val geminiApiKey: String =
+    gradleLocalProperties(
+        rootDir,
+        providers
+    ).getProperty("GEMINI_API_KEY") ?: ""
+
 android {
 
     namespace = "com.example.weathersteam"
@@ -36,6 +42,7 @@ android {
 
         buildConfigField("String", "STEAM_API_KEY", "\"" + steamApiKey + "\"")
         buildConfigField("String", "SERVER_BASE_ADDRESS", "\"" + baseServerAddress + "\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"" + geminiApiKey + "\"")
     }
 
     buildTypes {
@@ -58,17 +65,23 @@ kotlin {
 }
 
 dependencies {
-    implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.client.core)
+    implementation(libs.generativeai)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.coil.compose)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    val ktorVersion = "2.3.7"
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation(libs.play.services.location)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)

@@ -28,14 +28,19 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.weathersteam.handlers.SteamLoginHandler
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalTextApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SteamLoginScreen(
-    onSteamLoginClick: (String) -> Unit = { _ -> },
+    onSteamLogin: () -> Unit = {},
     onRegisterClick: () -> Unit = {}
 ) {
     var steamId by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier

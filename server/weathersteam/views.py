@@ -3,6 +3,7 @@ import uuid
 
 import bcrypt
 from django.contrib.auth.hashers import BCryptPasswordHasher
+from django.db import connection
 from django.views.decorators.http import require_http_methods
 import time
 import jwt
@@ -78,7 +79,7 @@ def api_login(request):
                 'success': True,
                 'username': user.username,
                 'token': token
-            })
+            }, status=200)
         else:
             return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
     except Exception as e:
@@ -119,6 +120,28 @@ def generate_unique_username(base_username):
         counter += 1
     return new_username
 
+@require_http_methods(["GET"])
+def api_game_steam_id(request):
+    try:
+         steam_game_id = request.GET.get('steam_game_id')
+
+         if not steam_game_id:
+             return JsonResponse({'success': False, 'message': 'Bad request', 'game': None}, status=400)
+
+         game = Games.objects.filter(steam_game_id=steam_game_id).first()
+
+         if game:
+             return JsonResponse({'success': True, 'message': 'Game found','game': {
+                 'id': str(game.id),  # Convert UUID to string
+                 'steam_game_id': game.steam_game_id,
+                 'title': game.title,
+                 'image_url': game.image_url,
+                 'tags': game.tags
+             }}, status=200)
+
+         return JsonResponse({'success': True, 'message': 'Game does not exist', 'game': None}, status=200)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 @require_http_methods(["POST"])
 def api_game_add(request):
     try:
@@ -128,15 +151,16 @@ def api_game_add(request):
         image_url = data.get('image_url')
         tags = data.get('tags')
 
-        if Games.objects.filter(steam_game_id=steam_game_id).exists() or Games.objects.filter(title=title).exists() or Games.objects.filter(image_url=image_url).exists():
-            return JsonResponse({'success': False, 'message': 'Game already exists'}, status=200)
+        existing_game = Games.objects.filter(steam_game_id=steam_game_id).first()
+        if existing_game:
+            return JsonResponse({'success': True, 'message': 'Game already exists', 'game_id:': str(existing_game.id)}, status=200)
 
         game_id = uuid.uuid4()
 
         new_game = Games.objects.create(id=game_id, title=title, steam_game_id=steam_game_id, image_url=image_url, tags=tags)
         new_game.save()
 
-        return JsonResponse({'success': True, 'message': 'Game added successfully!'}, status=201)
+        return JsonResponse({'success': True, 'message': 'Game added successfully!', 'game_id': str(game_id)}, status=201)
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
@@ -205,5 +229,79 @@ def api_game_user(request):
         return JsonResponse({'success': True, 'games': games_data}, status=200)
 
     except Exception as e:
-        print(f"SERVER ERROR: {e}")
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@require_http_methods(["POST"])
+def api_steam(request):
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        steam_id = data.get('steam_id')
+
+        if username is None:
+            return JsonResponse({'success': False, 'message': 'Invalid login request'}, status=400)
+
+        user = None
+
+        if steam_id is not None:
+            if Users.objects.filter(steam_id=steam_id).exists():
+                user = Users.objects.get(steam_id=steam_id)
+
+        if user is None:
+            user_id = uuid.uuid4()
+
+            if Users.objects.filter(username=username).exists():
+                username = generate_unique_username(username)
+
+            new_user = Users.objects.create(id=user_id, username=username, steam_id=steam_id, vanity_url_name=None, password=None, email=None)
+            new_user.save()
+            user = new_user
+
+        payload = {
+            'user_id': str(user.id),
+            'username': user.username,
+            'steam_id': user.steam_id,
+            'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7),
+            'iat': datetime.datetime.now(datetime.timezone.utc)
+        }
+
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
+        return JsonResponse({
+            'success': True,
+            'username': user.username,
+            'token': token
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@require_http_methods(["POST"])
+def api_game_user_add(request):
+    try:
+        data = json.loads(request.body)
+
+        user_id = uuid.UUID(data['user_id'])
+        game_id = uuid.UUID(data['game_id'])
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT 1 FROM users_games WHERE user_id = %s AND game_id = %s",
+                [user_id, game_id]
+            )
+            exists = cursor.fetchone()
+
+            if exists:
+                return JsonResponse({'success': True, 'message': 'User already has this game'}, status=200)
+
+            # 2. Insert new link (Raw SQL)
+            cursor.execute(
+                "INSERT INTO users_games (user_id, game_id) VALUES (%s, %s)",
+                [user_id, game_id]
+            )
+
+        return JsonResponse({'success': True, 'message': 'Game linked successfully'}, status=200)
+
+    except Exception as e:
+        print(f"SERVER ERROR: {str(e)}")
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
