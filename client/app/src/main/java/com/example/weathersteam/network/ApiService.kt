@@ -26,6 +26,7 @@ interface ApiService {
     fun getUserGames(
         @Query("user_id") userId: String,
         @Query("weather") weather: String?,
+        @Query("lighting") lighting: String,
         @Query("mood") mood: String?,
         @Query("pace") pace: String?,
         @Query("difficulty") difficulty: String?

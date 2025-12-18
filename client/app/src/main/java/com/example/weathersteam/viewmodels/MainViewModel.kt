@@ -2,27 +2,32 @@ package com.example.weathersteam.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import com.example.weathersteam.data.Game
 import com.example.weathersteam.data.WeatherData
 import com.example.weathersteam.enums.WeatherType
+import com.example.weathersteam.handlers.GameHandler
+import com.example.weathersteam.handlers.LightSensorHandler
 import com.example.weathersteam.handlers.LocationHandler
 import com.example.weathersteam.handlers.LocationPermissionException
+import com.example.weathersteam.handlers.SoundHandler
 import com.example.weathersteam.handlers.weatherApiHandler
+import com.example.weathersteam.helpers.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import androidx.lifecycle.application
-import com.example.weathersteam.data.Game
-import com.example.weathersteam.handlers.GameHandler
-import com.example.weathersteam.helpers.SessionManager
 import kotlin.uuid.ExperimentalUuidApi
 
 data class MainUiState(
     val temperature: String? = null,
     val isLoading: Boolean = true,
     val location: String? = null,
+    val lighting: String? = null,
+    val noise: String? = null,
     val recommendedGame: String? = null,
     val recommendedGameImageUrl: String? = null,
     val error: String? = null,
@@ -32,6 +37,9 @@ data class MainUiState(
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val locationHandler = LocationHandler(application)
+    private val lightSensorHandler = LightSensorHandler(application)
+    // Initialize Sound Handler
+    private val soundHandler = SoundHandler(application)
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -39,13 +47,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     @OptIn(ExperimentalUuidApi::class)
     fun fetchData() {
         viewModelScope.launch {
-            // Set loading state and clear any previous permission error
             _uiState.update {
                 it.copy(isLoading = true, error = null, needsPermission = false)
             }
             try {
-                val location = locationHandler.getCurrentLocation()
+                val noiseCategory = try {
+                    soundHandler.listenAndGetNoiseCategory()
+                } catch (e: Exception) {
+                    println("Sound Handler failed: ${e.message}")
+                    "UNKNOWN"
+                }
 
+                val lightingString = try {
+                    lightSensorHandler.getLightLevel().first()
+                } catch (e: Exception) {
+                    "UNKNOWN"
+                }
+
+                val location = locationHandler.getCurrentLocation()
                 if (location != null) {
                     val userLatitude = location.latitude
                     val userLongitude = location.longitude
@@ -55,35 +74,52 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                     val userId = SessionManager(context = application.baseContext).fetchUserIdFromToken()
                     val weatherString = weatherType.toString()
-                    val moodString = ""
-                    val paceString = ""
-                    val difficultyString = ""
 
-                    var recommendedGame: Game
+                    var recommendedGame: Game?
 
                     val gameHandler = GameHandler()
 
                     gameHandler.fetchGame(
                         userId = userId,
                         weather = weatherString,
-                        mood = moodString,
-                        pace = paceString,
-                        difficulty = difficultyString
+                        lighting = lightingString,
+                        mood = "",
+                        pace = noiseCategory,
+                        difficulty = ""
                     ) { success, game, message ->
-                        if (success && game != null) {
-                            println("I received the game: ${game.title}")
-                            recommendedGame = game
-                            val recommendedGameTitle = recommendedGame.title
-                            val recommendedGameImageUrl = recommendedGame.imageUrl
 
+                        if (success) {
+                            if (game != null) {
+                                println("I received the game: ${game.title}")
+                                recommendedGame = game
+
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        location = cityName,
+                                        temperature = "${weatherData.temperature}°C",
+                                        lighting = lightingString,
+                                        noise = noiseCategory,
+                                        recommendedGame = game.title,
+                                        recommendedGameImageUrl = game.imageUrl
+                                    )
+                                }
+                            } else {
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        location = cityName,
+                                        temperature = "${weatherData.temperature}°C",
+                                        lighting = lightingString,
+                                        noise = noiseCategory,
+                                        recommendedGame = "No games found",
+                                        error = "Try adding more games to your library!"
+                                    )
+                                }
+                            }
+                        } else {
                             _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    location = cityName,
-                                    temperature = "${weatherData.temperature}°C",
-                                    recommendedGame = recommendedGameTitle,
-                                    recommendedGameImageUrl = recommendedGameImageUrl
-                                )
+                                it.copy(isLoading = false, error = "Server Error: $message")
                             }
                         }
                     }
@@ -92,6 +128,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         it.copy(isLoading = false, error = "Could not retrieve location.")
                     }
                 }
+
             } catch (e: LocationPermissionException) {
                 _uiState.update {
                     it.copy(isLoading = false, needsPermission = true)
@@ -108,12 +145,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun weatherType(weatherData: WeatherData): WeatherType {
-        val moderateRainThreshold = 1.0 // mm
-        val heavyRainThreshold = 10.0   // mm
-        val windSpeedThreshold = 90.0   // km h
-        val snowThreshold = 1.0         // cm
-        val cloudsThreshold = 90           // %
-        val freezingTemp = 0.5                  // C
+        val moderateRainThreshold = 1.0
+        val heavyRainThreshold = 10.0
+        val windSpeedThreshold = 90.0
+        val snowThreshold = 1.0
+        val cloudsThreshold = 90
+        val freezingTemp = 0.5
 
         val snowfall = weatherData.snowfall
         val temperature = weatherData.temperature

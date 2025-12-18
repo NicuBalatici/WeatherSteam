@@ -18,6 +18,7 @@ class GameHandler {
         weather: String?,
         mood: String?,
         pace: String?,
+        lighting: String,
         difficulty: String?,
         onResult: (Boolean, Game?, String) -> Unit
     ) {
@@ -50,6 +51,7 @@ class GameHandler {
         ApiNetworkClient.api.getUserGames(
             userId,
             weather = "",
+            lighting = "",
             mood = "",
             pace = "",
             difficulty = ""
