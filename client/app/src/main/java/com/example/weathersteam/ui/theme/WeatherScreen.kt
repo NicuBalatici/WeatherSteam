@@ -35,7 +35,6 @@ fun WeatherScreen(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { permissions ->
             val locGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
-            val micGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: false
 
             if (locGranted) mainViewModel.fetchData()
         }
@@ -76,7 +75,7 @@ fun WeatherScreen(
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Analyzing Environment (5s)...", color = SteamTextSec)
+                        Text("Analyzing environment...", color = SteamTextSec)
                     }
 
                     uiState.needsPermission -> {
@@ -189,14 +188,14 @@ fun WeatherSuccessView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Light: ${lighting ?: "--"}",
+                text = "Mood: ${lighting ?: "--"}",
                 fontSize = 14.sp,
                 color = Color(0xFFFFD700), // Gold
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "Noise: ${noise ?: "--"}",
+                text = "Pace: ${noise ?: "--"}",
                 fontSize = 14.sp,
                 color = Color(0xFF00FF7F), // Spring Green
                 fontWeight = FontWeight.Bold
@@ -217,7 +216,7 @@ fun WeatherSuccessView(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(16f / 9f)
+                .aspectRatio(2.65f / 1f)
                 .clip(RoundedCornerShape(4.dp))
                 .background(Color.Black)
                 .border(1.dp, SteamBorder, RoundedCornerShape(4.dp))
@@ -227,7 +226,7 @@ fun WeatherSuccessView(
                     model = image,
                     contentDescription = "Game Cover",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize().aspectRatio(2.65f / 1f)
                 )
             } else {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -250,7 +249,7 @@ fun WeatherSuccessView(
         Spacer(modifier = Modifier.height(32.dp))
 
         SteamActionButton(
-            text = "REFRESH (5s Scan)",
+            text = "REFRESH",
             onClick = onRefreshClick,
             isPrimary = true
         )

@@ -55,7 +55,6 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
         }
     }
 
-    // --- SENSOR LOGIC (Keep existing logic) ---
     DisposableEffect(Unit) {
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val sensorListener = object : SensorEventListener {
@@ -89,7 +88,6 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
         }
     }
 
-    // --- UI START ---
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -114,7 +112,6 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // 1. Header
                 Text(
                     text = "SHAKE TO PICK",
                     fontSize = 26.sp,
@@ -134,11 +131,10 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 2. Image Area (The "Monitor")
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(16f / 9f)
+                        .aspectRatio(2.65f / 1f)
                         .background(Color.Black)
                         .border(1.dp, SteamBorder, RoundedCornerShape(4.dp))
                         .clip(RoundedCornerShape(4.dp)),
@@ -149,10 +145,9 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
                             model = image,
                             contentDescription = "Game Cover",
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize().aspectRatio(2.65f / 1f)
                         )
                     } else {
-                        // "No Signal" / Waiting State
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(
                                 color = SteamTextSec,
@@ -167,7 +162,6 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 3. Game Title
                 Text(
                     text = randomGame ?: "???",
                     fontSize = 24.sp,
@@ -178,7 +172,6 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // 4. Manual Button (Because shaking is hard on Emulators)
                 SteamActionButton(
                     text = "ROLL RANDOM GAME",
                     onClick = { fetchRandomGame() },
@@ -187,7 +180,6 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 5. Back Button
                 SteamActionButton(
                     text = "BACK TO MENU",
                     onClick = onBackClick,
