@@ -1,6 +1,5 @@
 package com.example.weathersteam.ui.theme
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -123,6 +122,7 @@ fun SteamGameItem(name: String, image: String) {
                 .width(120.dp)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(2.dp))
+                .aspectRatio(2.65f / 1f)
         )
 
         Spacer(modifier = Modifier.width(16.dp))
