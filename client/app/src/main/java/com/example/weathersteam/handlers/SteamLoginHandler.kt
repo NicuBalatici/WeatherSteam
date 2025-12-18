@@ -21,6 +21,9 @@ import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
 data class TempSteamGame (
     val steamGameId: Long,
     val title: String
@@ -158,12 +161,33 @@ class SteamLoginHandler {
 
                 val existingIds = gamesList?.map { it.steamGameId }?.toSet() ?: emptySet()
                 val missingGames = steamGamesList.filter { !existingIds.contains(it.steamGameId) }
-
                 if (missingGames.isNotEmpty()) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        handleMissingGames(missingGames)
+                        val gamesForAi = mutableListOf<TempSteamGame>()
+                        val gameHandler = GameHandler()
+
+                        for (game in missingGames) {
+                            val existingGame = suspendCoroutine { continuation ->
+                                gameHandler.getGameBySteamId(game.steamGameId.toString()) { success, _, gameObj ->
+                                    if (success) continuation.resume(gameObj) else continuation.resume(null)
+                                }
+                            }
+
+                            if (existingGame != null) {
+                                Log.d("SteamDebug", "Found ${game.title} in DB. Linking...")
+                                suspendCoroutine { continuation ->
+                                    gameHandler.addGameUser(userId, existingGame.id) { success, _ ->
+                                        continuation.resume(success)
+                                    }
+                                }
+                            } else {
+                                gamesForAi.add(game)
+                            }
+                        }
+
+                        handleMissingGames(userId, gamesForAi)
                         withContext(Dispatchers.Main) {
-                            onResult(true, "Profile Configured! Added ${missingGames.size} games.")
+                            onResult(true, "Profile Configured! Added ${gamesForAi.size} games.")
                         }
                     }
                 } else {
@@ -175,7 +199,8 @@ class SteamLoginHandler {
         }
 
         private suspend fun handleMissingGames(
-            games: List<TempSteamGame>,
+            userId: String,
+            games: List<TempSteamGame>
         ) {
             val gameHandler = GameHandler()
             val aiHandler = GoogleAiHandler()
@@ -194,12 +219,27 @@ class SteamLoginHandler {
                         val safeImageUrl = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.steamGameId}/capsule_231x87.jpg"
                         val tags = tagsMap[game.title] ?: "N/A,N/A,N/A,N/A"
 
-                        gameHandler.addGame(
-                            steamGameId = game.steamGameId,
-                            title = game.title,
-                            imageUrl = safeImageUrl,
-                            tags = tags
-                        ) { _, _ -> }
+                        val gameId = suspendCoroutine { continuation ->
+                            gameHandler.addGame(
+                                steamGameId = game.steamGameId,
+                                title = game.title,
+                                imageUrl = safeImageUrl,
+                                tags = tags
+                            ) { success, _, id ->
+                                if (success) continuation.resume(id) else continuation.resume(null)
+                            }
+                        }
+
+                        if (gameId != null) {
+                            suspendCoroutine<Boolean> { continuation ->
+                                gameHandler.addGameUser(userId, gameId) { success, _ ->
+                                    continuation.resume(success)
+                                }
+                            }
+                        } else {
+                            Log.e("SteamDebug", "Failed to save game: ${game.title}")
+                        }
+
                     }
 
                     kotlinx.coroutines.delay(2000)
