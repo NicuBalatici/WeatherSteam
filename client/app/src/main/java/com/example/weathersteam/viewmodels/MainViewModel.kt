@@ -38,9 +38,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val locationHandler = LocationHandler(application)
     private val lightSensorHandler = LightSensorHandler(application)
-    // Initialize Sound Handler
     private val soundHandler = SoundHandler(application)
-
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
@@ -73,17 +71,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val weatherType = weatherType(weatherData)
 
                     val userId = SessionManager(context = application.baseContext).fetchUserIdFromToken()
-                    val weatherString = weatherType.toString()
-
-                    var recommendedGame: Game?
+                    val weatherString = weatherType?.toString() ?: ""
 
                     val gameHandler = GameHandler()
 
                     gameHandler.fetchGame(
                         userId = userId,
                         weather = weatherString,
-                        lighting = lightingString,
-                        mood = "",
+                        mood = lightingString,
                         pace = noiseCategory,
                         difficulty = ""
                     ) { success, game, message ->
@@ -91,7 +86,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         if (success) {
                             if (game != null) {
                                 println("I received the game: ${game.title}")
-                                recommendedGame = game
 
                                 _uiState.update {
                                     it.copy(
@@ -144,7 +138,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun weatherType(weatherData: WeatherData): WeatherType {
+    fun weatherType(weatherData: WeatherData): WeatherType? {
         val moderateRainThreshold = 1.0
         val heavyRainThreshold = 10.0
         val windSpeedThreshold = 90.0
@@ -176,6 +170,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return WeatherType.CLOUDS
         }
 
-        return WeatherType.SUN
+        if (weatherData.isDay)
+            return WeatherType.SUN
+
+        return null
     }
 }

@@ -44,7 +44,6 @@ fun RandomGameScreen(onBackClick: () -> Unit) {
         gameHandler.fetchGame(
             userId = userId,
             weather = "", // Empty params = pure random
-            lighting = "",
             mood = "",
             pace = "",
             difficulty = ""

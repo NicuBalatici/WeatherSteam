@@ -1,5 +1,6 @@
 package com.example.weathersteam.ui.theme
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -175,7 +177,26 @@ fun SteamLoginScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
-                    onClick = { onSteamLoginClick(steamId) },
+                    onClick = { if (steamId.isNotEmpty()) {
+                        isLoading = true
+                        scope.launch {
+                            try {
+                                SteamLoginHandler.performLogin(context, steamId) { success, message ->
+                                    isLoading = false
+                                    if (success) {
+                                        Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
+                                            .show()
+                                        onSteamLogin()
+                                    } else {
+                                        Toast.makeText(context, "Error: $message", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                isLoading = false
+                                Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    } },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),

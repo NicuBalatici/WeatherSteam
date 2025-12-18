@@ -27,9 +27,8 @@ class LightSensorHandler(private val context: Context) {
                     val lux = it.values[0]
 
                     val lightCategory = when {
-                        lux < 10 -> "DARK"
-                        lux < 500 -> "DIM"
-                        else -> "BRIGHT"
+                        lux < 250 -> "DARK"
+                        else -> "LIGHT"
                     }
                     trySend(lightCategory)
                 }

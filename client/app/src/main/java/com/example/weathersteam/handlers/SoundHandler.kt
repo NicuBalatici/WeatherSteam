@@ -60,9 +60,8 @@ class SoundHandler(private val context: Context) {
             Log.d("SoundHandler", "Average Noise: $averageDb dB")
 
             return when {
-                averageDb < 50.0 -> "QUIET"
-                averageDb < 75.0 -> "NORMAL"
-                else -> "LOUD"
+                averageDb < 75.0 -> "SLOW_PACED"
+                else -> "FAST_PACED"
             }
 
         } catch (e: Exception) {
