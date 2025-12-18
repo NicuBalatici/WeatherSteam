@@ -11,6 +11,7 @@ import com.example.weathersteam.handlers.GameHandler
 import com.example.weathersteam.handlers.LightSensorHandler
 import com.example.weathersteam.handlers.LocationHandler
 import com.example.weathersteam.handlers.LocationPermissionException
+import com.example.weathersteam.handlers.SoundHandler
 import com.example.weathersteam.handlers.weatherApiHandler
 import com.example.weathersteam.helpers.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +26,8 @@ data class MainUiState(
     val temperature: String? = null,
     val isLoading: Boolean = true,
     val location: String? = null,
-    val lighting: String? = null, // <--- 1. ADD THIS FIELD
+    val lighting: String? = null,
+    val noise: String? = null,
     val recommendedGame: String? = null,
     val recommendedGameImageUrl: String? = null,
     val error: String? = null,
@@ -36,6 +38,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val locationHandler = LocationHandler(application)
     private val lightSensorHandler = LightSensorHandler(application)
+    // Initialize Sound Handler
+    private val soundHandler = SoundHandler(application)
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -47,7 +51,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 it.copy(isLoading = true, error = null, needsPermission = false)
             }
             try {
-                // Get Light Level
+                val noiseCategory = try {
+                    soundHandler.listenAndGetNoiseCategory()
+                } catch (e: Exception) {
+                    println("Sound Handler failed: ${e.message}")
+                    "UNKNOWN"
+                }
+
                 val lightingString = try {
                     lightSensorHandler.getLightLevel().first()
                 } catch (e: Exception) {
@@ -74,7 +84,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         weather = weatherString,
                         lighting = lightingString,
                         mood = "",
-                        pace = "",
+                        pace = noiseCategory,
                         difficulty = ""
                     ) { success, game, message ->
 
@@ -88,26 +98,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                         isLoading = false,
                                         location = cityName,
                                         temperature = "${weatherData.temperature}°C",
-                                        lighting = lightingString, // <--- 2. ASSIGN THE VALUE HERE
+                                        lighting = lightingString,
+                                        noise = noiseCategory,
                                         recommendedGame = game.title,
                                         recommendedGameImageUrl = game.imageUrl
                                     )
                                 }
                             } else {
-                                // Success but NO games found
                                 _uiState.update {
                                     it.copy(
                                         isLoading = false,
                                         location = cityName,
                                         temperature = "${weatherData.temperature}°C",
-                                        lighting = lightingString, // Pass lighting even if no game found
+                                        lighting = lightingString,
+                                        noise = noiseCategory,
                                         recommendedGame = "No games found",
                                         error = "Try adding more games to your library!"
                                     )
                                 }
                             }
                         } else {
-                            // Backend Error
                             _uiState.update {
                                 it.copy(isLoading = false, error = "Server Error: $message")
                             }

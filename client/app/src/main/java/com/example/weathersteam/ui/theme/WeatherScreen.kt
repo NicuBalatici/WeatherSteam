@@ -32,9 +32,12 @@ fun WeatherScreen(
     val uiState by mainViewModel.uiState.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if (isGranted) mainViewModel.fetchData()
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            val locGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+            val micGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: false
+
+            if (locGranted) mainViewModel.fetchData()
         }
     )
 
@@ -73,26 +76,33 @@ fun WeatherScreen(
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Analyzing Weather & Light...", color = SteamTextSec)
+                        Text("Analyzing Environment (5s)...", color = SteamTextSec)
                     }
 
                     uiState.needsPermission -> {
                         Text(
-                            "Location Required",
+                            "Permissions Required",
                             color = SteamTextMain,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "We need your location to recommend games based on the local weather.",
+                            "We need Location (for weather) and Microphone (for noise level) to recommend the perfect game.",
                             color = SteamTextSec,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         SteamActionButton(
-                            text = "GRANT PERMISSION",
-                            onClick = { permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION) }
+                            text = "GRANT PERMISSIONS",
+                            onClick = {
+                                permissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                                        Manifest.permission.RECORD_AUDIO
+                                    )
+                                )
+                            }
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         SteamActionButton(
@@ -128,6 +138,7 @@ fun WeatherScreen(
                             location = uiState.location,
                             temperature = uiState.temperature,
                             lighting = uiState.lighting,
+                            noise = uiState.noise,
                             game = uiState.recommendedGame,
                             image = uiState.recommendedGameImageUrl,
                             onRefreshClick = { mainViewModel.fetchData() },
@@ -144,7 +155,8 @@ fun WeatherScreen(
 fun WeatherSuccessView(
     location: String?,
     temperature: String?,
-    lighting: String?, // <--- Receive Parameter
+    lighting: String?,
+    noise: String?,
     game: String?,
     image: String?,
     onRefreshClick: () -> Unit,
@@ -163,7 +175,6 @@ fun WeatherSuccessView(
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Location & Temperature
         Text(
             text = "${location ?: "Unknown"} • ${temperature ?: "N/A"}",
             fontSize = 22.sp,
@@ -171,15 +182,26 @@ fun WeatherSuccessView(
             fontWeight = FontWeight.Medium
         )
 
-        // --- NEW SENSOR TEXT ---
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Lighting Sensor: ${lighting ?: "Waiting..."}",
-            fontSize = 16.sp,
-            color = Color(0xFFFFD700), // Gold/Yellow Color to stand out
-            fontWeight = FontWeight.Bold
-        )
-        // -----------------------
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Light: ${lighting ?: "--"}",
+                fontSize = 14.sp,
+                color = Color(0xFFFFD700), // Gold
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Noise: ${noise ?: "--"}",
+                fontSize = 14.sp,
+                color = Color(0xFF00FF7F), // Spring Green
+                fontWeight = FontWeight.Bold
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -228,7 +250,7 @@ fun WeatherSuccessView(
         Spacer(modifier = Modifier.height(32.dp))
 
         SteamActionButton(
-            text = "REFRESH",
+            text = "REFRESH (5s Scan)",
             onClick = onRefreshClick,
             isPrimary = true
         )
