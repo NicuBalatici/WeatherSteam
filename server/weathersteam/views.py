@@ -140,41 +140,70 @@ def api_game_add(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
+
 @require_http_methods(["GET"])
 def api_game_user(request):
     try:
-        user_id = uuid.UUID(request.GET.get('user_id'))
-        weather = str(request.GET.get('weather'))
-        mood = str(request.GET.get('mood'))
-        pace = str(request.GET.get('pace'))
-        difficulty = str(request.GET.get('difficulty'))
+        user_id_str = request.GET.get('user_id')
+        weather = request.GET.get('weather')
+        lighting = request.GET.get('lighting')
+        mood = request.GET.get('mood')
+        pace = request.GET.get('pace')
+        difficulty = request.GET.get('difficulty')
 
-        if user_id is None:
-            return JsonResponse({'success': False, 'message': 'User id is None'}, status=400)
+        if not user_id_str:
+            return JsonResponse({'success': False, 'message': 'User id is missing'}, status=400)
 
+        user_id = uuid.UUID(user_id_str)
         if not Users.objects.filter(id=user_id).exists():
             return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
 
-        game_ids_queryset = UsersGames.objects.filter(user_id=user_id).values('game_id')
+        user_game_ids = UsersGames.objects.filter(user_id=user_id).values_list('game_id', flat=True)
+        games_query = Games.objects.filter(id__in=user_game_ids)
 
-        game_ids = list(game_id['game_id'] for game_id in game_ids_queryset)
+        if weather and weather != "None":
+            weather_map = {
+                "CLOUDS": "Strategy",
+                "SUN": "Adventure",
+                "RAIN": "Puzzle",
+                "SNOW": "RPG",
+                "CLEAR": "Action",
+                "THUNDER": "Indie",
+                "MIST": "Simulation"
+            }
+            target_genre = weather_map.get(weather)
+            if target_genre:
+                games_query = games_query.filter(tags__icontains=target_genre)
 
-        games_queryset = Games.objects.filter(id__in=game_ids).values('id', 'steam_game_id', 'title', 'image_url', 'tags').distinct()
+        if lighting and lighting != "UNKNOWN":
+            light_map = {
+                "DARK": "DARK",
+                "DIM": "Strategy",
+                "BRIGHT": "LIGHT"
+            }
 
-        games = list(games_queryset)
+            target_light_tag = light_map.get(lighting)
 
-        if weather and weather != "" and weather != "None":
-            games = [game for game in games if weather == game["tags"].split(',')[0]]
+            if target_light_tag:
+                games_query = games_query.filter(tags__icontains=target_light_tag)
 
-        if mood and mood != "" and mood != "None":
-            games = [game for game in games if mood == game["tags"].split(',')[1]]
+        if mood and mood not in ["None", ""]:
+            games_query = games_query.filter(tags__icontains=mood)
 
-        if pace and pace != "" and pace != "None":
-            games = [game for game in games if pace == game["tags"].split(',')[2]]
+        if pace and pace not in ["None", ""]:
+            games_query = games_query.filter(tags__icontains=pace)
 
-        if difficulty and difficulty != "" and difficulty != "None":
-            games = [game for game in games if difficulty == game["tags"].split(',')[3]]
+        if difficulty and difficulty not in ["None", ""]:
+            games_query = games_query.filter(tags__icontains=difficulty)
 
-        return JsonResponse({'success': True, 'games': games}, status=200)
+        games_data = list(games_query.values('id', 'steam_game_id', 'title', 'image_url', 'tags'))
+
+        if not games_data:
+            fallback_query = Games.objects.filter(id__in=user_game_ids).order_by('?')[:1]
+            games_data = list(fallback_query.values('id', 'steam_game_id', 'title', 'image_url', 'tags'))
+
+        return JsonResponse({'success': True, 'games': games_data}, status=200)
+
     except Exception as e:
+        print(f"SERVER ERROR: {e}")
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
