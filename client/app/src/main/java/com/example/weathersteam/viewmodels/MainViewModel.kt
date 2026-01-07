@@ -71,7 +71,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val weatherType = weatherType(weatherData)
 
                     val userId = SessionManager(context = application.baseContext).fetchUserIdFromToken()
-                    val weatherString = weatherType?.toString() ?: ""
+                    var weatherString = weatherType?.toString() ?: ""
+
+                    if (weatherString == "SUN" && lightingString == "DARK") {
+                        weatherString = ""
+                    }
 
                     val gameHandler = GameHandler()
 
